@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+	  .content {
+	    position: fixed;
+	    inset: 0;
+	    width: fit-content;
+	    height: fit-content;
+	    margin: auto;
+	    background: white;
+	    padding: 10px;
+	    text-align: center;
+	}
+
+	  img {
+	    width:750px;
+	}
+
+    </style>
+  </head>
+        
+  <body>
+    <div class="content">
+      <h1>Abbe, Cleveland</h1>
+      <p>1831-1916</p>
+      <img src="https://raw.githubusercontent.com/majacanavan/handwriting/refs/heads/main/images/Abbe_Cleveland.png">
+    </div>
+  </body>
+
+</html>
