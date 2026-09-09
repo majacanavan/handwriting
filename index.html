@@ -5,14 +5,17 @@
     <title>Table Search Two Columns</title>
     <style>
         body { font-family: sans-serif; margin: 20px; }
-        input { padding: 8px; width: 300px; margin-bottom: 15px; }
+        input { padding: 8px; width: 100%; margin-bottom: 15px; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f4f4f4; }
         img { width: 500px; }
+        h1 { text-align: center; }
     </style>
 </head>
 <body>
+
+<h1>Botanical Signatures</h1>
 
     <input type="text" id="searchInput" placeholder="Search for any part of a name">
 
@@ -76,18 +79,23 @@
 
     <script>
         document.getElementById('searchInput').addEventListener('keyup', function() {
+            // 1. Get the user input value and convert to lowercase for case-insensitive matching
             const filter = this.value.toLowerCase();
             
+            // 2. Grab all table rows inside the tbody (ignoring the header)
             const rows = document.querySelectorAll('#dataTable tbody tr');
 
             rows.forEach(row => {
+                // 3. Target specific columns by their index
                 const nameCell = row.cells[0]; // First column
                 const cityCell = row.cells[1]; // Second column
 
                 if (nameCell && cityCell) {
+                    // 4. Extract text content
                     const nameText = nameCell.textContent.toLowerCase();
                     const cityText = cityCell.textContent.toLowerCase();
 
+                    // 5. Check if the filter matches either of the two columns (OR logic)
                     if (nameText.includes(filter) || cityText.includes(filter)) {
                         row.style.display = ''; // Show row
                     } else {
