@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+	  .content {
+	    position: fixed;
+	    inset: 0;
+	    width: fit-content;
+	    height: fit-content;
+	    margin: auto;
+	    background: white;
+	    padding: 10px;
+	    text-align: center;
+	}
+
+	  img {
+	    width:750px;
+	}
+
+    </style>
+  </head>
+        
+  <body>
+    <div class="content">
+      <h1>Abedin, Sultan ul</h1>
+      <p>fl. 1971</p>
+      <img src="https://majacanavan.github.io/handwriting/images/Abedin-Sultan-ul-1.png">
+      <img src="https://majacanavan.github.io/handwriting/images/Abedin-Sultan-ul-2.png">
+    </div>
+  </body>
+
+</html>
