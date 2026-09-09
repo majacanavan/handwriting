@@ -1,67 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-* {
-  box-sizing: border-box;
-}
-
-#myInput {
-  background-image: url('/css/searchicon.png');
-  background-position: 10px 10px;
-  background-repeat: no-repeat;
-  width: 100%;
-  font-size: 16px;
-  padding: 12px 20px 12px 40px;
-  border: 1px solid #ddd;
-  margin-bottom: 12px;
-}
-
-#myTable {
-  border-collapse: collapse;
-  width: 100%;
-  border: 1px solid #ddd;
-  font-size: 18px;
-}
-
-#myTable th, #myTable td {
-  text-align: left;
-  padding: 12px;
-}
-
-#myTable tr {
-  border-bottom: 1px solid #ddd;
-}
-
-#myTable tr.header, #myTable tr:hover {
-  background-color: #f1f1f1;
-}
-
-h1 {
-  text-align: center;
-}
-
-img {
-  width: 600px;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <title>Table Search Two Columns</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        input { padding: 8px; width: 300px; margin-bottom: 15px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        img { width: 500px; }
+    </style>
 </head>
 <body>
 
-<h1>Botanical Signatures</h1>
+    <input type="text" id="searchInput" placeholder="Search by Name or City...">
 
-<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for any part of a name" title="Type in a name">
-
-<table id="myTable">
-  <tr class="header">
-    <th style="width:20%;">Name</th>
-    <th style="width:20%;">Other Name(s)/Spelling(s)</th>
-    <th style="width:20%;">Date(s)</th>
-    <th style="width:20%;">Signature</th>
-    <th style="width:20%;">Source</th>
-  </tr>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Other Name(s)/Spelling(s)</th>
+                <th>Date(s)</th>
+                <th>Signature</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+        
   <tr>
     <td><a>Abbe, Cleveland</a></td>
     <td></td>
@@ -104,32 +70,38 @@ img {
     <td><img src="https://majacanavan.github.io/handwriting/images/Adamovic-Lujo-2-1.png"></td>
     <td><a href="https://as.huntbot.org/repositories/2/resources/7">Hunt Institute</a></td>
   </tr>
-</table>
+            
+        </tbody>
+    </table>
 
-<script>
-function myFunction() {
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("myInput");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("myTable");
-  tr = table.getElementsByTagName("tr");
-  
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td");
-    for (var j = 0; j < td.length; j++) {
-      txtValue = td[j].textContent || td[j].innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-        break;
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
+    <script>
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            // 1. Get the user input value and convert to lowercase for case-insensitive matching
+            const filter = this.value.toLowerCase();
+            
+            // 2. Grab all table rows inside the tbody (ignoring the header)
+            const rows = document.querySelectorAll('#dataTable tbody tr');
 
+            rows.forEach(row => {
+                // 3. Target specific columns by their index
+                const nameCell = row.cells[0]; // First column
+                const cityCell = row.cells[1]; // Second column
 
-</script>
+                if (nameCell && cityCell) {
+                    // 4. Extract text content
+                    const nameText = nameCell.textContent.toLowerCase();
+                    const cityText = cityCell.textContent.toLowerCase();
+
+                    // 5. Check if the filter matches either of the two columns (OR logic)
+                    if (nameText.includes(filter) || cityText.includes(filter)) {
+                        row.style.display = ''; // Show row
+                    } else {
+                        row.style.display = 'none'; // Hide row
+                    }
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
