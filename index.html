@@ -76,23 +76,18 @@
 
     <script>
         document.getElementById('searchInput').addEventListener('keyup', function() {
-            // 1. Get the user input value and convert to lowercase for case-insensitive matching
             const filter = this.value.toLowerCase();
             
-            // 2. Grab all table rows inside the tbody (ignoring the header)
             const rows = document.querySelectorAll('#dataTable tbody tr');
 
             rows.forEach(row => {
-                // 3. Target specific columns by their index
                 const nameCell = row.cells[0]; // First column
                 const cityCell = row.cells[1]; // Second column
 
                 if (nameCell && cityCell) {
-                    // 4. Extract text content
                     const nameText = nameCell.textContent.toLowerCase();
                     const cityText = cityCell.textContent.toLowerCase();
 
-                    // 5. Check if the filter matches either of the two columns (OR logic)
                     if (nameText.includes(filter) || cityText.includes(filter)) {
                         row.style.display = ''; // Show row
                     } else {
