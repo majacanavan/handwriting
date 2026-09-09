@@ -37,68 +37,72 @@
 #myTable tr.header, #myTable tr:hover {
   background-color: #f1f1f1;
 }
+
+h1 {
+  text-align: center;
+}
+
+img {
+  width: 600px;
+}
+
 </style>
 </head>
 <body>
 
-<h2>Botanical Signatures</h2>
+<h1>Botanical Signatures</h1>
 
-<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names" title="Type in a name">
+<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for any part of a name" title="Type in a name">
 
 <table id="myTable">
   <tr class="header">
-    <th style="width:25%;">Name</th>
-    <th style="width:25%;">Date</th>
-    <th style="width:25%;">Region</th>
-    <th style="width:25%;">Signature</th>    
+    <th style="width:20%;">Name</th>
+    <th style="width:20%;">Other Name(s)/Spelling(s)</th>
+    <th style="width:20%;">Date(s)</th>
+    <th style="width:20%;">Signature</th>
+    <th style="width:20%;">Source</th>
   </tr>
   <tr>
-    <td><a href="https://majacanavan.github.io/handwriting/people/Abbe_Cleveland">Abbe, Cleveland</a></td>
-    <td>Date</td>
-    <td>Region</td>
-    <td><img src="https://raw.githubusercontent.com/majacanavan/handwriting/refs/heads/main/images/Abbe_Cleveland.png"></td>
+    <td><a>Abbe, Cleveland</a></td>
+    <td></td>
+    <td>1838-1916</td>
+    <td><img src="https://majacanavan.github.io/handwriting/images/Abbe-Cleveland.png"></td>
+    <td><a href="https://as.huntbot.org/repositories/2/resources/7">Hunt Institute</a></td>
   </tr>
+  
+  
   <tr>
-    <td>2</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
+    <td><a href="https://majacanavan.github.io/handwriting/people/Abedin-Sultan-ul.html">Abedin, Sultan ul</a></td>
+    <td></td>
+    <td>fl. 1971</td>
+    <td><img src="https://majacanavan.github.io/handwriting/images/Abedin-Sultan-ul-1.png"></td>
+    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
   </tr>
+  
+  
   <tr>
-    <td>3</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
+    <td>Achten, Lode Théodoor</td>
+    <td>Achten, Lode Theodoor</td>
+    <td>1883-1933</td>
+    <td><img src="https://majacanavan.github.io/handwriting/images/Achten-Lode-Theodoor.png"></td>
+    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
   </tr>
+  
+  
   <tr>
-    <td>4</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
+    <td><a href="https://majacanavan.github.io/handwriting/people/Adamovic-Lujo-1.html">Adamovic, Lujo</a></td>
+    <td></td>
+    <td>1864-1935</td>
+    <td><img src="https://majacanavan.github.io/handwriting/images/Adamovic-Lujo-1-1.png"></td>
+    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
   </tr>
-  <tr>
-    <td>5</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
-  </tr>
-  <tr>
-    <td>Name</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
-  </tr>
-  <tr>
-    <td>Name</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
-  </tr>
-  <tr>
-    <td>Name</td>
-    <td>Date</td>
-    <td>Region</td>
-    <td>Signature</td>
+  
+    <tr>
+    <td>Adamovic, Lujo</td>
+    <td></td>
+    <td>1864-1935</td>
+    <td><img src="https://majacanavan.github.io/handwriting/images/Adamovic-Lujo-2-1.png"></td>
+    <td><a href="https://as.huntbot.org/repositories/2/resources/7">Hunt Institute</a></td>
   </tr>
 </table>
 
@@ -109,18 +113,22 @@ function myFunction() {
   filter = input.value.toUpperCase();
   table = document.getElementById("myTable");
   tr = table.getElementsByTagName("tr");
+  
   for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[0];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
+    td = tr[i].getElementsByTagName("td");
+    for (var j = 0; j < td.length; j++) {
+      txtValue = td[j].textContent || td[j].innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
         tr[i].style.display = "";
+        break;
       } else {
         tr[i].style.display = "none";
       }
-    }       
+    }
   }
 }
+
+
 </script>
 
 </body>
