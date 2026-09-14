@@ -760,7 +760,7 @@
                 e.className = "entry";
                 e.appendChild(makeTextCell("Name", row.name, true));
                 e.appendChild(makeTextCell("Other name(s) / Spelling(s)", row.other));
-                e.appendChild(makeTextCell("Dates", row.dates));
+                e.appendChild(makeTextCell("Date(s)", row.dates));
                 const sig = document.createElement("div");
                 sig.className = "signature-box";
                 sig.appendChild(makeSignature(row, rowIndex));
@@ -819,7 +819,7 @@
                 wrap.className = "table-wrap";
                 const head = document.createElement("div");
                 head.className = "column-head";
-                ["Name", "Other name(s) / spelling(s)", "Dates", "Signature", "Source"].forEach((x) => {
+                ["Name", "Other name(s) / Spelling(s)", "Date(s)", "Signature", "Source"].forEach((x) => {
                     const d = document.createElement("div");
                     d.textContent = x;
                     head.appendChild(d);
