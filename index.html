@@ -1,419 +1,907 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Botanical Signatures</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f5f5f2;color:#222}
-header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ccc;padding:20px}
-.wrap{max-width:1500px;margin:auto}
-h1{margin:0 0 5px}
-header p{margin:0 0 15px;color:#666}
-.controls{display:flex;gap:8px}
-#search{flex:1;padding:12px;border:1px solid #aaa;border-radius:6px;font-size:16px}
-button{padding:9px 13px;border:1px solid #aaa;border-radius:6px;background:#fff;cursor:pointer}
-button:hover{background:#eee}
-#letters{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
-#letters button{min-width:34px}
-#letters .active{font-weight:bold;outline:2px solid #222}
-#status{margin-top:12px;color:#666;font-size:14px}
-.hint{font-size:13px;color:#666;margin-top:7px}
-#error{margin:20px auto;max-width:1500px;padding:15px;background:#fff0f0;border:1px solid #c99;color:#700;border-radius:7px}
-#results{padding:20px}
-.table-wrap{max-width:1500px;margin:auto;background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden}
-.column-head{display:grid;grid-template-columns:1.1fr 1fr 120px 1.2fr .9fr;gap:14px;padding:12px 14px;background:#ecece7;border-bottom:2px solid #bbb;font-weight:bold;font-size:14px}
-.entry{display:grid;grid-template-columns:1.1fr 1fr 120px 1.2fr .9fr;gap:14px;padding:14px;border-top:1px solid #ddd;align-items:start}
-.entry:first-of-type{border-top:0}
-.signature-box{min-height:70px}
-.signature-box img{max-width:100%;max-height:220px;display:block}
-.missing{padding:35px 10px;border:1px dashed #bbb;background:#fafafa;color:#888;text-align:center}
-.source a{color:#222}
-.mobile-label{display:none}
-.load-more{display:block;margin:18px auto}
-@media(max-width:900px){
- .column-head{display:none}
- .entry{grid-template-columns:1fr 1fr}
- .mobile-label{display:block;font-weight:bold;font-size:12px;color:#777;margin-bottom:3px}
- .signature-box,.source{grid-column:1/-1}
-}
-@media(max-width:600px){
- .entry{grid-template-columns:1fr}
- .signature-box,.source{grid-column:auto}
-}
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Botanical Signatures</title>
+        
+        <style>
+       
+       		@font-face {
+            	font-family: myFontRegular;
+                src: url(https://typographer.io/1/fonts/cc:big-caslon::regular@2.0.0/woff2?token=ec6719fd31
+);
+            }
+            
+            @font-face {
+            	font-family: myFontBlack;
+                src: url(https://typographer.io/1/fonts/cc:big-caslon::black@2.0.0/woff2?token=0557ce2d77
+);
+            }
+            
+            @font-face {
+            	font-family: myFontBlackItalic;
+                src: url(https://typographer.io/1/fonts/cc:big-caslon::bold-italic@2.0.0/woff2?token=d2422160e2
+);
+            }
+            
+            @font-face {
+            	font-family: myFontBold;
+                src: url(https://typographer.io/1/fonts/cc:big-caslon::bold@2.0.0/woff2?token=9798f09597
+);
+            }
+       
+            * {
+				box-sizing: border-box;
+            }
+            
+            body {
+                margin: 0;
+                font-family: myFontRegular;
+                background: #f5f5f2;
+                color: #222;
+            }
+            
+            header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #fff;
+                border-bottom: 1px solid #ccc;
+                padding-top: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-bottom: 10px;
+                text-align: center;
+            }
+            
+            .wrap {
+                max-width: 1500px;
+                margin: auto;
+            }
+            
+            h1 {
+                margin: 0 0 5px;
+                font-family: myFontBlack;
+                font-size: 40px;
+            }
+            
+            header p {
+                margin: 0 0 15px;
+                color: #666;
+                font-family: myFontBlack;
+                font-size: 20px;
+                letter-spacing: 0.5px;
+            }
+            
+            .controls {
+                display: flex;
+                gap: 8px;
+            }
+            
+            #search {
+                flex: 1;
+                padding: 12px;
+                border: 1px solid #aaa;
+                border-radius: 6px;
+                font-size: 16px;
+                margin-top: 5px;
+                font-family: myFontBlack;
+                font-size: 22px;
+            }
+            
+            button {
+                padding: 12px;
+                border: 1px solid #aaa;
+                border-radius: 6px;
+                background: #fff;
+                cursor: pointer;
+                font-family: myFontBold;
+                font-size: 18px;
+            }
+            
+            button:hover {
+                background: #eee;
+            }
+                        
+            .hint {
+                font-size: 16px;
+                color: #666;
+                margin-top: 12px;
+                text-align: left;
+            }
+            
+            .hint u {
+            	font-size: 17.5px;
+            }
+            
+            #letters {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-top: 35px;
+                justify-content: center;
+            }
+            
+            #letters button {
+                min-width: 34px;
+                font-family: myFontRegular;
+                font-size: 20px;
+            }
+            
+            #letters button:hover {
+            	background-color: #b1caa3;
+            }
+            
+            #letters .active {
+                font-weight: bold;
+                outline: 2px solid #222;
+                font-family: myFontBlack;
+                background: #87AE73;
+            }
+            
+            #status {
+                margin-top: 35px;
+                color: #666;
+                font-size: 16px;
+                font-family: myFontBold;
+                letter-spacing: 0.5px;
+            }
+            
+            #error {
+                margin: 20px auto;
+                max-width: 1500px;
+                padding: 15px;
+                background: #fff0f0;
+                border: 1px solid #c99;
+                color: #700;
+                border-radius: 7px;
+            }
+            
+            #results {
+                padding: 20px;
+            }
+            
+            .table-wrap {
+                max-width: 1500px;
+                margin: auto;
+                background: #fff;
+                border: 2px solid #87AE73;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
+            .column-head {
+                display: grid;
+                grid-template-columns: 1.1fr 1.1fr 0.5fr 1.2fr 0.9fr;
+                gap: 14px;
+                padding: 12px 14px;
+                background: #b1caa3;
+                border: 2px solid #87AE73;
+                font-weight: bold;
+                font-size: 20px;
+                text-align: center;
+            }
+            
+            .entry {
+                display: grid;
+                grid-template-columns: 1.1fr 1.1fr 0.5fr 1.2fr 0.9fr;
+                padding: 14px;
+                border-top: 2px solid #87AE73;
+                border-left: 2px solid #87AE73;
+                border-right: 2px solid #87AE73;
+                border-bottom: 1px solid #87AE73;
+                text-align: center;
+                align-items: center;
+                font-family: myFontRegular;
+                font-size: 18px;
+            }
+            
+            
+            .signature-box {
+                min-height: 70px;
+            }
+            
+            .signature-box img {
+                max-height: 220px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .missing {
+                padding: 35px 10px;
+                border: 1px dashed #bbb;
+                background: #fafafa;
+                color: #888;
+                text-align: center;
+            }
+            
+            .source a {
+                color: #222;
+            }
+            
+            .mobile-label {
+                display: none;
+            }
+            
+            .load-more {
+                display: block;
+                margin-top: 20px;
+                font-size: 18px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .load-more:hover {
+            	background-color: #b1caa3;
+            }
+            
+            @media (max-width: 900px) {
+                .column-head {
+                    display: none;
+                }
+                .entry {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .mobile-label {
+                    display: block;
+                    font-weight: bold;
+                    font-size: 12px;
+                    color: #777;
+                    margin-bottom: 3px;
+                }
+                .signature-box,
+                .source {
+                    grid-column: 1/-1;
+                }
+            }
+            
+            @media (max-width: 600px) {
+                .entry {
+                    grid-template-columns: 1fr;
+                }
+                .signature-box,
+                .source {
+                    grid-column: auto;
+                }
+            }
+            
+            .signature-wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                min-width: 150px;
+            }
+            
+            .signature-carousel {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+            }
+            
+            .carousel-btn {
+                border: 1px solid #bbb;
+                background: #f7f7f7;
+                border-radius: 4px;
+                width: 26px;
+                height: 30px;
+                cursor: pointer;
+                font-size: 18px;
+                line-height: 1;
+                padding: 0;
+            }
+            
+            .carousel-btn:hover {
+                background: #e9e9e9;
+            }
+            
+            .carousel-btn:disabled {
+                opacity: 0.35;
+                cursor: default;
+            }
+            
+            .carousel-img {
+                width: 200px;
+                height: 140px;
+                object-fit: contain;
+                display: block;
+                cursor: zoom-in;
+            }
+            
+            .carousel-count {
+                font-size: 11px;
+                color: #666;
+            }
+            
+            .zoom-viewer {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.82);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 30px;
+                box-sizing: border-box;
+            }
+            
+            .zoom-viewer.open {
+                display: flex;
+            }
+            
+            .zoom-viewer img {
+                max-width: 92vw;
+                max-height: 88vh;
+                object-fit: contain;
+                user-select: none;
+                transform-origin: center center;
+            }
+            
+            .zoom-close {
+                position: absolute;
+                top: 14px;
+                right: 20px;
+                border: 0;
+                background: none;
+                color: white;
+                font-size: 34px;
+                cursor: pointer;
+                line-height: 1;
+            }
+            
+            .zoom-controls {
+                position: absolute;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .zoom-controls button {
+                border: 1px solid #aaa;
+                background: white;
+                font-size: 20px;
+                cursor: pointer;
+            }
+            
+            .zoom-level {
+                color: white;
+                min-width: 55px;
+                text-align: center;
+                font-size: 18px;
+            }
+            
+            .zoom-prev,
+            .zoom-next {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                border: 0;
+                background: rgba(255, 255, 255, 0.85);
+                border-radius: 50%;
+                width: 42px;
+                height: 42px;
+                font-size: 27px;
+                cursor: pointer;
+            }
+            
+            .zoom-prev {
+                left: 18px;
+            }
+            
+            .zoom-next {
+                right: 18px;
+            }
+            
+            .zoom-caption {
+                position: absolute;
+                top: 16px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: white;
+                font-size: 13px;
+                text-align: center;
+            }
+            
+            .zoom-hint {
+                position: absolute;
+                left: 50%;
+                bottom: 6px;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.72);
+                color: white;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                white-space: nowrap;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.15s;
+            }
+            
+            .signature-carousel {
+                position: relative;
+            }
 
-.signature-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:150px}
-.signature-carousel{display:flex;align-items:center;justify-content:center;gap:5px}
-.carousel-btn{border:1px solid #bbb;background:#f7f7f7;border-radius:4px;width:26px;height:30px;cursor:pointer;font-size:18px;line-height:1;padding:0}
-.carousel-btn:hover{background:#e9e9e9}
-.carousel-btn:disabled{opacity:.35;cursor:default}
-.carousel-img{width:200px;height:140px;object-fit:contain;display:block;cursor:zoom-in}
-.carousel-count{font-size:11px;color:#666}
+            /* Cursor-following tooltip that replaces the old static zoom tip.
+   Follows the mouse while it's over any signature image. Behavior adapted
+   from https://stackoverflow.com/a/62875968 (Alberto Rhuertas, CC BY-SA 4.0),
+   rewritten in vanilla JS and applied to every signature image site-wide. */
+            .hover-tip {
+                position: fixed;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                z-index: 5000;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                padding: 5px 10px;
+                border-radius: 4px;
+                font-size: 15px;
+                white-space: nowrap;
+                opacity: 0;
+                transition: opacity 0.12s ease;
+                transform: translate(-9999px, -9999px);
+            }
+            
+            .hover-tip.show {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <header>
+            <div class="wrap">
+                <h1>🌳🌸🌿 Botanical Signatures 🌿🌸🌳</h1>
+                <p>A visual reference for identifying botanical collectors by their signatures/handwriting</p>
+                <div class="controls">
+                    <input
+                        id="search"
+                        type="search"
+                        placeholder="Search for any part of a name …"
+                        autocomplete="off"
+                    />
+                    <button id="clear">Clear</button>
+                </div>
+                <div class="hint">
+<u>Wildcard Examples —</u>
+<br>
+❀<strong> H?nson</strong> returns <strong>Hanson, Henson,</strong> and <strong>Hinson</strong>
+<br>
+❀<strong> *anson</strong> returns <strong>Branson, Christianson,</strong> and <strong>Hanson</strong>
+                </div>
+                <div id="letters"></div>
+                <div id="status">Loading collector list …</div>
+            </div>
+        </header>
+        <div id="error" style="display: none"></div>
+        <div id="results"></div>
+        <div id="hoverTip" class="hover-tip">🔍 Click to zoom</div>
+        <div id="zoomViewer" class="zoom-viewer" role="dialog" aria-modal="true" aria-label="Signature viewer">
+            <button class="zoom-close" type="button" aria-label="Close viewer" onclick="closeViewer()">×</button>
+            <div id="zoomCaption" class="zoom-caption"></div>
+            <button id="zoomPrev" class="zoom-prev" type="button" aria-label="Previous signature">‹</button>
+            <img id="zoomImage" alt="" />
+            <button id="zoomNext" class="zoom-next" type="button" aria-label="Next signature">›</button>
+            <div class="zoom-controls">
+                <button type="button" onclick="changeZoom(-0.2)">−</button>
+                <span id="zoomLevel" class="zoom-level">100%</span>
+                <button type="button" onclick="changeZoom(0.2)">+</button>
+                <button type="button" onclick="resetZoom()">Reset</button>
+            </div>
+        </div>
+        <script>
+            const DATA_URL = "https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
+            const IMAGE_BASE = "https://majacanavan.github.io/handwriting/images/";
+            const CACHE_KEY = "botanical-signatures-names-v1";
+            const PAGE_SIZE = 50;
+            let data = [];
+            let activeLetter = "";
+            let query = "";
+            let visibleCount = PAGE_SIZE;
 
+            function norm(s) {
+                return (s || "")
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .trim();
+            }
+            function wildcardRegex(pattern) {
+                const escaped = norm(pattern).replace(/[.+^${}()|[\]\\]/g, "\\$&");
+                try {
+                    return new RegExp(escaped.replace(/\*/g, ".*").replace(/\?/g, "."), "i");
+                } catch (e) {
+                    return null;
+                }
+            }
+            function matchesSearch(row) {
+                if (!query) return true;
+                const re = wildcardRegex(query);
+                return !!re && (re.test(norm(row.name)) || re.test(norm(row.other)));
+            }
+            function parseNamesTxt(text) {
+                return text
+                    .replace(/^\uFEFF/, "")
+                    .split(/\r?\n/)
+                    .filter((x) => x.trim())
+                    .map((line) => {
+                        const p = line.split("\t");
+                        return {
+                            name: (p[0] || "").trim(),
+                            other: (p[1] || "").trim(),
+                            dates: (p[2] || "").trim(),
+                            source: (p[4] || "").trim(),
+                            sourceUrl: (p[5] || "").trim(),
+                        };
+                    })
+                    .filter((r) => r.name)
+                    .sort(
+                        (a, b) =>
+                            a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }) ||
+                            a.source.localeCompare(b.source, undefined, { sensitivity: "base" })
+                    );
+            }
+            function imageName(name) {
+                return (
+                    name
+                        .replace(/^\uFEFF/, "")
+                        .replace(/['’]/g, "")
+                        .replace(/&/g, "and")
+                        .replace(/[,:;()[\]{}]/g, "")
+                        .replace(/\s+/g, "-")
+                        .replace(/[\/\\?%#"]/g, "")
+                        .replace(/-+/g, "-")
+                        .replace(/^-|-$/g, "") + ".png"
+                );
+            }
+            function imageUrl(name) {
+                return IMAGE_BASE + encodeURIComponent(imageName(name));
+            }
 
-.zoom-viewer{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;display:none;align-items:center;justify-content:center;padding:30px;box-sizing:border-box}
-.zoom-viewer.open{display:flex}
-.zoom-viewer img{max-width:92vw;max-height:88vh;object-fit:contain;cursor:grab;user-select:none;transform-origin:center center}
-.zoom-viewer img:active{cursor:grabbing}
-.zoom-close{position:absolute;top:14px;right:20px;border:0;background:none;color:white;font-size:34px;cursor:pointer;line-height:1}
-.zoom-controls{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px}
-.zoom-controls button{border:1px solid #aaa;background:white;border-radius:5px;padding:7px 12px;font-size:16px;cursor:pointer}
-.zoom-level{color:white;min-width:55px;text-align:center;font-size:13px}
-.zoom-prev,.zoom-next{position:absolute;top:50%;transform:translateY(-50%);border:0;background:rgba(255,255,255,.85);border-radius:50%;width:42px;height:42px;font-size:27px;cursor:pointer}
-.zoom-prev{left:18px}.zoom-next{right:18px}
-.zoom-caption{position:absolute;top:16px;left:50%;transform:translateX(-50%);color:white;font-size:13px;text-align:center}
+            // TEST ONLY: the first collector has three temporary carousel images.
+            // All other collectors continue to use their normal single image.
+            let imageManifest = {};
+            function signatureUrls(row) {
+                const listed = imageManifest[row.name];
+                if (Array.isArray(listed) && listed.length) {
+                    return listed.map((file) => IMAGE_BASE + encodeURIComponent(file));
+                }
+                return [imageUrl(row.name)];
+            }
 
+            // Builds the signature cell for a row. Every image (single or multi) gets a
+            // carousel-style container so the same zoom viewer + hover tooltip works for
+            // all of them; prev/next controls and the count label are only added when
+            // there's actually more than one image to page through.
+            function makeSignature(row, rowIndex) {
+                const urls = signatureUrls(row);
+                const wrap = document.createElement("div");
+                wrap.className = "signature-wrap";
 
-.zoom-hint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);background:rgba(0,0,0,.72);color:white;border-radius:4px;padding:4px 8px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s}
-.signature-carousel{position:relative}
-.zoom-tip{margin:8px 0 0;text-align:center;font-size:12px;color:#666}
+                const carousel = document.createElement("div");
+                carousel.className = "signature-carousel";
+                carousel.id = "carousel-" + rowIndex;
+                carousel.dataset.index = "0";
 
-</style>
-</head>
-<body>
-<header>
-<div class="wrap">
-<h1>Botanical Signatures</h1>
-<p>A visual reference for identifying botanical collectors by their signatures.</p>
-<div class="controls">
-<input id="search" type="search" placeholder="Search names…  * = any characters, ? = one character" autocomplete="off">
-<button id="clear">Clear</button>
-</div>
-<div class="hint">Wildcard examples: <strong>Abbe*</strong>, <strong>*smith*</strong>, <strong>Ag?siz</strong></div><div class="zoom-tip">Tip: click a signature image to zoom in.</div>
-<div id="letters"></div>
-<div id="status">Loading collector list…</div>
-</div>
-</header>
+                const img = document.createElement("img");
+                img.className = "lazy-image carousel-img";
+                img.dataset.src = urls[0];
+                img.dataset.carouselUrls = JSON.stringify(urls);
+                img.alt = "Signature of " + row.name;
+                img.onclick = () => openViewer(carousel);
 
-<div id="error" style="display:none"></div>
-<div id="results"></div>
+                if (urls.length > 1) {
+                    const prev = document.createElement("button");
+                    prev.className = "carousel-btn";
+                    prev.type = "button";
+                    prev.textContent = "‹";
+                    prev.setAttribute("aria-label", "Previous signature");
+                    prev.onclick = () => moveCarousel(carousel, -1);
 
+                    const next = document.createElement("button");
+                    next.className = "carousel-btn";
+                    next.type = "button";
+                    next.textContent = "›";
+                    next.setAttribute("aria-label", "Next signature");
+                    next.onclick = () => moveCarousel(carousel, 1);
 
-<div id="zoomViewer" class="zoom-viewer" role="dialog" aria-modal="true" aria-label="Signature viewer">
-  <button class="zoom-close" type="button" aria-label="Close viewer" onclick="closeViewer()">×</button>
-  <div id="zoomCaption" class="zoom-caption"></div>
-  <button id="zoomPrev" class="zoom-prev" type="button" aria-label="Previous signature">‹</button>
-  <img id="zoomImage" alt="">
-  <button id="zoomNext" class="zoom-next" type="button" aria-label="Next signature">›</button>
-  <div class="zoom-controls">
-    <button type="button" onclick="changeZoom(-0.2)">−</button>
-    <span id="zoomLevel" class="zoom-level">100%</span>
-    <button type="button" onclick="changeZoom(0.2)">+</button>
-    <button type="button" onclick="resetZoom()">Reset</button>
-  </div>
-</div>
+                    const count = document.createElement("div");
+                    count.className = "carousel-count";
+                    count.textContent = "1 / " + urls.length;
 
-<script>
-const DATA_URL="https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
-const IMAGE_BASE="https://majacanavan.github.io/handwriting/images/";
-const CACHE_KEY="botanical-signatures-names-v1";
-const PAGE_SIZE=50;
+                    carousel.append(prev, img, next);
+                    wrap.append(carousel, count);
+                } else {
+                    carousel.append(img);
+                    wrap.append(carousel);
+                }
 
-let data=[];
-let activeLetter="";
-let query="";
-let visibleCount=PAGE_SIZE;
+                return wrap;
+            }
 
-function norm(s){
- return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-}
+            let activeViewerCarousel = null;
+            let viewerZoom = 1;
+            function openViewer(carousel) {
+                const img = carousel.querySelector("img");
+                if (!img) return;
+                activeViewerCarousel = carousel;
+                viewerZoom = 1;
+                document.getElementById("zoomViewer").classList.add("open");
+                document.body.style.overflow = "hidden";
+                updateViewer();
+            }
+            function updateViewer() {
+                if (!activeViewerCarousel) return;
+                const img = activeViewerCarousel.querySelector("img");
+                const urls = JSON.parse(img.dataset.carouselUrls || "[]");
+                const current = Number(activeViewerCarousel.dataset.index || 0);
+                const viewerImg = document.getElementById("zoomImage");
+                viewerImg.src = urls[current];
+                viewerImg.alt = img.alt;
+                viewerImg.style.transform = "scale(" + viewerZoom + ")";
+                document.getElementById("zoomLevel").textContent = Math.round(viewerZoom * 100) + "%";
+                document.getElementById("zoomCaption").textContent = current + 1 + " / " + urls.length;
+                const multi = urls.length > 1;
+                document.getElementById("zoomPrev").style.display = multi ? "" : "none";
+                document.getElementById("zoomNext").style.display = multi ? "" : "none";
+            }
+            function changeZoom(amount) {
+                viewerZoom = Math.max(0.5, Math.min(4, viewerZoom + amount));
+                updateViewer();
+            }
+            function resetZoom() {
+                viewerZoom = 1;
+                updateViewer();
+            }
+            function closeViewer() {
+                document.getElementById("zoomViewer").classList.remove("open");
+                document.body.style.overflow = "";
+                activeViewerCarousel = null;
+            }
+            document.getElementById("zoomPrev").onclick = () => {
+                if (!activeViewerCarousel) return;
+                moveCarousel(activeViewerCarousel, -1);
+                updateViewer();
+            };
+            document.getElementById("zoomNext").onclick = () => {
+                if (!activeViewerCarousel) return;
+                moveCarousel(activeViewerCarousel, 1);
+                updateViewer();
+            };
+            document.getElementById("zoomViewer").addEventListener("click", (e) => {
+                if (e.target.id === "zoomViewer") closeViewer();
+            });
+            document.addEventListener("keydown", (e) => {
+                const viewer = document.getElementById("zoomViewer");
+                if (!viewer.classList.contains("open")) return;
+                if (e.key === "Escape") closeViewer();
+                if (e.key === "ArrowLeft") document.getElementById("zoomPrev").click();
+                if (e.key === "ArrowRight") document.getElementById("zoomNext").click();
+                if (e.key === "+") changeZoom(0.2);
+                if (e.key === "-") changeZoom(-0.2);
+            });
+            function moveCarousel(carousel, direction) {
+                const img = carousel.querySelector("img");
+                if (!img) return;
+                const urls = JSON.parse(img.dataset.carouselUrls);
+                let current = Number(carousel.dataset.index || 0);
+                current = (current + direction + urls.length) % urls.length;
+                carousel.dataset.index = current;
+                img.src = urls[current];
+                img.removeAttribute("data-src");
+                const countEl = carousel.parentElement.querySelector(".carousel-count");
+                if (countEl) countEl.textContent = current + 1 + " / " + urls.length;
+            }
 
-function wildcardRegex(pattern){
- const escaped=norm(pattern).replace(/[.+^${}()|[\]\\]/g,"\\$&");
- try{return new RegExp(escaped.replace(/\*/g,".*").replace(/\?/g,"."),"i")}
- catch(e){return null}
-}
+            function initial(name) {
+                const c = norm(name).charAt(0);
+                return /^[a-z]$/.test(c) ? c : "#";
+            }
+            function makeLetters() {
+                const box = document.getElementById("letters");
+                box.innerHTML = "";
+                const all = document.createElement("button");
+                all.textContent = "All";
+                all.className = activeLetter === "" ? "active" : "";
+                all.onclick = () => {
+                    activeLetter = "";
+                    visibleCount = PAGE_SIZE;
+                    render();
+                };
+                box.appendChild(all);
+                for (let i = 0; i < 26; i++) {
+                    const l = String.fromCharCode(97 + i),
+                        b = document.createElement("button");
+                    b.textContent = l.toUpperCase();
+                    b.className = activeLetter === l ? "active" : "";
+                    b.onclick = () => {
+                        activeLetter = l;
+                        visibleCount = PAGE_SIZE;
+                        render();
+                    };
+                    box.appendChild(b);
+                }
+            }
+            function makeTextCell(label, text, bold = false) {
+                const d = document.createElement("div");
+                const lab = document.createElement("div");
+                lab.className = "mobile-label";
+                lab.textContent = label;
+                d.appendChild(lab);
+                const v = document.createElement(bold ? "strong" : "span");
+                v.textContent = text || "—";
+                d.appendChild(v);
+                return d;
+            }
+            function makeEntry(row, rowIndex) {
+                const e = document.createElement("div");
+                e.className = "entry";
+                e.appendChild(makeTextCell("Name", row.name, true));
+                e.appendChild(makeTextCell("Other name(s) / spelling(s)", row.other));
+                e.appendChild(makeTextCell("Dates", row.dates));
+                const sig = document.createElement("div");
+                sig.className = "signature-box";
+                sig.appendChild(makeSignature(row, rowIndex));
+                e.appendChild(sig);
+                const source = document.createElement("div");
+                source.className = "source";
+                const sl = document.createElement("div");
+                sl.className = "mobile-label";
+                sl.textContent = "Source";
+                source.appendChild(sl);
+                if (row.sourceUrl) {
+                    const a = document.createElement("a");
+                    a.href = row.sourceUrl;
+                    a.target = "_blank";
+                    a.rel = "noopener";
+                    a.textContent = row.source || "Source";
+                    source.appendChild(a);
+                } else source.appendChild(document.createTextNode(row.source || "—"));
+                e.appendChild(source);
+                return e;
+            }
 
-function matchesSearch(row){
- if(!query)return true;
- const re=wildcardRegex(query);
- return !!re && (re.test(norm(row.name))||re.test(norm(row.other)));
-}
+            const imageObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.onload = () => imageObserver.unobserve(img);
+                        img.onerror = () => {
+                            const m = document.createElement("div");
+                            m.className = "missing";
+                            m.textContent = "Image not added yet";
+                            img.replaceWith(m);
+                            imageObserver.unobserve(img);
+                        };
+                    });
+                },
+                { rootMargin: "500px 0px" }
+            );
 
-function parseNamesTxt(text){
- return text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim()).map(line=>{
-  const p=line.split("\t");
-  return {name:(p[0]||"").trim(),other:(p[1]||"").trim(),dates:(p[2]||"").trim(),
-          source:(p[4]||"").trim(),sourceUrl:(p[5]||"").trim()};
- }).filter(r=>r.name).sort((a,b)=>
-  a.name.localeCompare(b.name,undefined,{sensitivity:"base",numeric:true})||
-  a.source.localeCompare(b.source,undefined,{sensitivity:"base"})
- );
-}
+            function render() {
+                makeLetters();
+                const rows = data.filter(
+                    (r) => (!activeLetter || initial(r.name) === activeLetter) && matchesSearch(r)
+                );
+                const shown = rows.slice(0, visibleCount);
+                document.getElementById("status").textContent =
+                    rows.length.toLocaleString() +
+                    " entries" +
+                    (query ? ' matching "' + query + '"' : activeLetter ? " in " + activeLetter.toUpperCase() : "") +
+                    (rows.length > shown.length ? "  —  showing " + shown.length : "");
+                const box = document.getElementById("results");
+                box.innerHTML = "";
+                const wrap = document.createElement("div");
+                wrap.className = "table-wrap";
+                const head = document.createElement("div");
+                head.className = "column-head";
+                ["Name", "Other name(s) / spelling(s)", "Dates", "Signature", "Source"].forEach((x) => {
+                    const d = document.createElement("div");
+                    d.textContent = x;
+                    head.appendChild(d);
+                });
+                wrap.appendChild(head);
+                const frag = document.createDocumentFragment();
+                shown.forEach((r, i) => frag.appendChild(makeEntry(r, i)));
+                wrap.appendChild(frag);
+                box.appendChild(wrap);
+                wrap.querySelectorAll(".lazy-image").forEach((img) => imageObserver.observe(img));
+                if (shown.length < rows.length) {
+                    const more = document.createElement("button");
+                    more.className = "load-more";
+                    more.textContent = `Load next ${Math.min(PAGE_SIZE, rows.length - shown.length)} entries`;
+                    more.onclick = () => {
+                        visibleCount += PAGE_SIZE;
+                        render();
+                    };
+                    box.appendChild(more);
+                }
+            }
 
-function imageName(name){
- return name.replace(/^\uFEFF/,"").replace(/['’]/g,"").replace(/&/g,"and")
-  .replace(/[,:;()[\]{}]/g,"").replace(/\s+/g,"-")
-  .replace(/[\/\\?%#"]/g,"").replace(/-+/g,"-").replace(/^-|-$/g,"")+".png";
-}
-function imageUrl(name){return IMAGE_BASE+encodeURIComponent(imageName(name));}
+            async function loadData() {
+                try {
+                    // First use a cached copy, so refreshing the page does not repeatedly hit GitHub.
+                    const cached = localStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        try {
+                            data = JSON.parse(cached);
+                            render();
+                        } catch (e) {}
+                    }
+                    try {
+                        const imageResponse = await fetch("images.json", { cache: "no-cache" });
+                        if (imageResponse.ok) imageManifest = await imageResponse.json();
+                    } catch (e) {
+                        imageManifest = {};
+                    }
+                    const response = await fetch(DATA_URL, { cache: "no-cache" });
+                    if (!response.ok) throw new Error("GitHub returned HTTP " + response.status);
+                    const fresh = parseNamesTxt(await response.text());
+                    data = fresh;
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(fresh));
+                    } catch (e) {}
+                    render();
+                } catch (err) {
+                    if (!data.length) {
+                        document.getElementById("status").textContent = "Could not load collector list.";
+                        const error = document.getElementById("error");
+                        error.style.display = "block";
+                        error.textContent = "Could not load names.txt from GitHub: " + err.message;
+                    }
+                }
+            }
 
-// TEST ONLY: the first collector has three temporary carousel images.
-// All other collectors continue to use their normal single image.
-let imageManifest={};
+            document.getElementById("search").addEventListener("input", (e) => {
+                query = e.target.value;
+                visibleCount = PAGE_SIZE;
+                render();
+            });
+            document.getElementById("clear").addEventListener("click", () => {
+                document.getElementById("search").value = "";
+                query = "";
+                activeLetter = "";
+                visibleCount = PAGE_SIZE;
+                render();
+            });
 
-function signatureUrls(row){
- const listed=imageManifest[row.name];
- if(Array.isArray(listed) && listed.length){
-  return listed.map(file=>IMAGE_BASE+encodeURIComponent(file));
- }
- return [imageUrl(row.name)];
-}
+            // Cursor-following "Click to zoom" tooltip, shown while hovering any
+            // signature image. Replaces the old static "Tip: click a signature image
+            // to zoom in." text under the search box. Adapted (without jQuery) from
+            // https://stackoverflow.com/a/62875968 — Alberto Rhuertas, modified by
+            // community, CC BY-SA 4.0, retrieved 2026-09-14.
+            (function () {
+                const tip = document.getElementById("hoverTip");
+                let hovering = false;
+                document.addEventListener("mousemove", (e) => {
+                    const overImage = e.target.closest && e.target.closest(".carousel-img");
+                    if (overImage) {
+                        tip.style.transform = "translate(" + (e.clientX + 14) + "px," + (e.clientY + 14) + "px)";
+                        if (!hovering) {
+                            hovering = true;
+                            tip.classList.add("show");
+                        }
+                    } else if (hovering) {
+                        hovering = false;
+                        tip.classList.remove("show");
+                    }
+                });
+                document.addEventListener("mouseleave", () => {
+                    hovering = false;
+                    tip.classList.remove("show");
+                });
+            })();
 
-function makeSignature(row,rowIndex){
- const urls=signatureUrls(row);
- const wrap=document.createElement("div");
- wrap.className="signature-wrap";
-
- if(urls.length===1){
-  const img=document.createElement("img");
-  img.className="lazy-image carousel-img";
-  img.dataset.src=urls[0];
-  img.alt="Signature of "+row.name;
-  wrap.appendChild(img);
-  return wrap;
- }
-
- const carousel=document.createElement("div");
- carousel.className="signature-carousel";
- carousel.id="carousel-"+rowIndex;
- carousel.dataset.index="0";
-
- const prev=document.createElement("button");
- prev.className="carousel-btn";
- prev.type="button";
- prev.textContent="‹";
- prev.setAttribute("aria-label","Previous signature");
-
- const img=document.createElement("img");
- img.className="lazy-image carousel-img";
- img.dataset.src=urls[0];
- img.dataset.carouselUrls=JSON.stringify(urls);
- img.alt="Signature of "+row.name;
-
- const next=document.createElement("button");
- next.className="carousel-btn";
- next.type="button";
- next.textContent="›";
- next.setAttribute("aria-label","Next signature");
-
- const count=document.createElement("div");
- count.className="carousel-count";
- count.textContent="1 / "+urls.length;
-
- prev.onclick=()=>moveCarousel(carousel,-1);
- next.onclick=()=>moveCarousel(carousel,1);
- img.onclick=()=>openViewer(carousel);
-
- const zoomHint=document.createElement("div");
- zoomHint.className="zoom-hint";
- zoomHint.textContent="🔍 Click to zoom";
- carousel.append(prev,img,next,zoomHint);
- wrap.append(carousel,count);
- return wrap;
-}
-
-
-let activeViewerCarousel=null;
-let viewerZoom=1;
-
-function openViewer(carousel){
- const img=carousel.querySelector("img");
- if(!img)return;
- activeViewerCarousel=carousel;
- viewerZoom=1;
- document.getElementById("zoomViewer").classList.add("open");
- document.body.style.overflow="hidden";
- updateViewer();
-}
-
-function updateViewer(){
- if(!activeViewerCarousel)return;
- const img=activeViewerCarousel.querySelector("img");
- const urls=JSON.parse(img.dataset.carouselUrls||"[]");
- const current=Number(activeViewerCarousel.dataset.index||0);
- const viewerImg=document.getElementById("zoomImage");
- viewerImg.src=urls[current];
- viewerImg.alt=img.alt;
- viewerImg.style.transform="scale("+viewerZoom+")";
- document.getElementById("zoomLevel").textContent=Math.round(viewerZoom*100)+"%";
- document.getElementById("zoomCaption").textContent=(current+1)+" / "+urls.length;
-}
-
-function changeZoom(amount){
- viewerZoom=Math.max(.5,Math.min(4,viewerZoom+amount));
- updateViewer();
-}
-
-function resetZoom(){
- viewerZoom=1;
- updateViewer();
-}
-
-function closeViewer(){
- document.getElementById("zoomViewer").classList.remove("open");
- document.body.style.overflow="";
- activeViewerCarousel=null;
-}
-
-document.getElementById("zoomPrev").onclick=()=>{
- if(!activeViewerCarousel)return;
- moveCarousel(activeViewerCarousel,-1);
- updateViewer();
-};
-document.getElementById("zoomNext").onclick=()=>{
- if(!activeViewerCarousel)return;
- moveCarousel(activeViewerCarousel,1);
- updateViewer();
-};
-document.getElementById("zoomViewer").addEventListener("click",e=>{
- if(e.target.id==="zoomViewer")closeViewer();
-});
-document.addEventListener("keydown",e=>{
- const viewer=document.getElementById("zoomViewer");
- if(!viewer.classList.contains("open"))return;
- if(e.key==="Escape")closeViewer();
- if(e.key==="ArrowLeft")document.getElementById("zoomPrev").click();
- if(e.key==="ArrowRight")document.getElementById("zoomNext").click();
- if(e.key==="+")changeZoom(.2);
- if(e.key==="-")changeZoom(-.2);
-});
-
-function moveCarousel(carousel,direction){
- const img=carousel.querySelector("img");
- if(!img)return;
- const urls=JSON.parse(img.dataset.carouselUrls);
- let current=Number(carousel.dataset.index||0);
- current=(current+direction+urls.length)%urls.length;
- carousel.dataset.index=current;
- img.src=urls[current];
- img.removeAttribute("data-src");
- carousel.parentElement.querySelector(".carousel-count").textContent=(current+1)+" / "+urls.length;
-}
-
-function initial(name){const c=norm(name).charAt(0);return /^[a-z]$/.test(c)?c:"#";}
-
-function makeLetters(){
- const box=document.getElementById("letters"); box.innerHTML="";
- const all=document.createElement("button"); all.textContent="All";
- all.className=activeLetter===""?"active":"";
- all.onclick=()=>{activeLetter="";visibleCount=PAGE_SIZE;render()};
- box.appendChild(all);
- for(let i=0;i<26;i++){
-  const l=String.fromCharCode(97+i),b=document.createElement("button");
-  b.textContent=l.toUpperCase();b.className=activeLetter===l?"active":"";
-  b.onclick=()=>{activeLetter=l;visibleCount=PAGE_SIZE;render()};
-  box.appendChild(b);
- }
-}
-
-function makeTextCell(label,text,bold=false){
- const d=document.createElement("div");
- const lab=document.createElement("div");lab.className="mobile-label";lab.textContent=label;d.appendChild(lab);
- const v=document.createElement(bold?"strong":"span");v.textContent=text||"—";d.appendChild(v);return d;
-}
-
-function makeEntry(row,rowIndex){
- const e=document.createElement("div");e.className="entry";
- e.appendChild(makeTextCell("Name",row.name,true));
- e.appendChild(makeTextCell("Other name(s) / spelling(s)",row.other));
- e.appendChild(makeTextCell("Dates",row.dates));
-
- const sig=document.createElement("div");
- sig.className="signature-box";
- sig.appendChild(makeSignature(row,rowIndex));
- e.appendChild(sig);
-
- const source=document.createElement("div");source.className="source";
- const sl=document.createElement("div");sl.className="mobile-label";sl.textContent="Source";source.appendChild(sl);
- if(row.sourceUrl){
-  const a=document.createElement("a");a.href=row.sourceUrl;a.target="_blank";a.rel="noopener";
-  a.textContent=row.source||"Source";source.appendChild(a);
- }else source.appendChild(document.createTextNode(row.source||"—"));
- e.appendChild(source);
- return e;
-}
-
-const imageObserver=new IntersectionObserver(entries=>{
- entries.forEach(entry=>{
-  if(!entry.isIntersecting)return;
-  const img=entry.target;
-  img.src=img.dataset.src;
-  img.onload=()=>imageObserver.unobserve(img);
-  img.onerror=()=>{
-   const m=document.createElement("div");m.className="missing";m.textContent="Image not added yet";
-   img.replaceWith(m);imageObserver.unobserve(img);
-  };
- });
-},{rootMargin:"500px 0px"});
-
-function render(){
- makeLetters();
- const rows=data.filter(r=>
-  (!activeLetter||initial(r.name)===activeLetter)&&matchesSearch(r)
- );
- const shown=rows.slice(0,visibleCount);
- document.getElementById("status").textContent=
-  rows.length.toLocaleString()+" entries"+(query?' matching "'+query+'"':
-  activeLetter?" in "+activeLetter.toUpperCase():"")+
-  (rows.length>shown.length?" · showing "+shown.length:"");
-
- const box=document.getElementById("results");box.innerHTML="";
- const wrap=document.createElement("div");wrap.className="table-wrap";
-
- const head=document.createElement("div");head.className="column-head";
- ["Name","Other name(s) / spelling(s)","Dates","Signature","Source"].forEach(x=>{
-  const d=document.createElement("div");d.textContent=x;head.appendChild(d);
- });
- wrap.appendChild(head);
-
- const frag=document.createDocumentFragment();
- shown.forEach((r,i)=>frag.appendChild(makeEntry(r,i)));
- wrap.appendChild(frag);
- box.appendChild(wrap);
-
- wrap.querySelectorAll(".lazy-image").forEach(img=>imageObserver.observe(img));
-
- if(shown.length<rows.length){
-  const more=document.createElement("button");more.className="load-more";
-  more.textContent=`Load next ${Math.min(PAGE_SIZE,rows.length-shown.length)} entries`;
-  more.onclick=()=>{visibleCount+=PAGE_SIZE;render()};
-  box.appendChild(more);
- }
-}
-
-async function loadData(){
- try{
-  // First use a cached copy, so refreshing the page does not repeatedly hit GitHub.
-  const cached=localStorage.getItem(CACHE_KEY);
-  if(cached){
-   try{data=JSON.parse(cached);render();}catch(e){}
-  }
-
-  try{
-   const imageResponse=await fetch("images.json",{cache:"no-cache"});
-   if(imageResponse.ok) imageManifest=await imageResponse.json();
-  }catch(e){ imageManifest={}; }
-
-  const response=await fetch(DATA_URL,{cache:"no-cache"});
-  if(!response.ok)throw new Error("GitHub returned HTTP "+response.status);
-  const fresh=parseNamesTxt(await response.text());
-  data=fresh;
-  try{localStorage.setItem(CACHE_KEY,JSON.stringify(fresh));}catch(e){}
-  render();
- }catch(err){
-  if(!data.length){
-   document.getElementById("status").textContent="Could not load collector list.";
-   const error=document.getElementById("error");error.style.display="block";
-   error.textContent="Could not load names.txt from GitHub: "+err.message;
-  }
- }
-}
-
-document.getElementById("search").addEventListener("input",e=>{query=e.target.value;visibleCount=PAGE_SIZE;render()});
-document.getElementById("clear").addEventListener("click",()=>{document.getElementById("search").value="";query="";activeLetter="";visibleCount=PAGE_SIZE;render()});
-loadData();
-</script>
-</body>
+            loadData();
+        </script>
+    </body>
 </html>
