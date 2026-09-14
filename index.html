@@ -167,10 +167,17 @@
                 padding: 20px;
             }
             
+            #credit {
+            	position: static;
+                padding: 5px;
+                right: 50px;
+            }
+            
             .table-wrap {
                 max-width: 1500px;
                 margin: auto;
                 background: #fff;
+                border-bottom: 3px solid #87AE73;
                 border-radius: 8px;
                 overflow: hidden;
             }
@@ -486,7 +493,10 @@
             </div>
         </header>
         <div id="error" style="display: none"></div>
-        <div id="results"></div>       
+        <div id="results"></div>  
+        
+                <div id="credit">Made by Maja Canavan Cesaretti | mcanavan@mobot.org</div>
+                
         <div id="hoverTip" class="hover-tip">🔍 Click to zoom</div>
         <div id="zoomViewer" class="zoom-viewer" role="dialog" aria-modal="true" aria-label="Signature viewer">
             <button class="zoom-close" type="button" aria-label="Close viewer" onclick="closeViewer()">×</button>
@@ -501,6 +511,7 @@
                 <button type="button" onclick="resetZoom()">Reset</button>
             </div>
         </div>
+        
         <script>
             const DATA_URL = "https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
             const IMAGE_BASE = "https://majacanavan.github.io/handwriting/images/";
