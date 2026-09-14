@@ -1,110 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Table Search Two Columns</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        input { padding: 8px; width: 100%; margin-bottom: 15px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        img { width: 500px; }
-        h1 { text-align: center; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Botanical Signatures</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f5f2;color:#222}
+header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #ccc;padding:20px}
+.wrap{max-width:1500px;margin:auto}
+h1{margin:0 0 5px}
+header p{margin:0 0 15px;color:#666}
+.controls{display:flex;gap:8px}
+#search{flex:1;padding:12px;border:1px solid #aaa;border-radius:6px;font-size:16px}
+button{padding:9px 13px;border:1px solid #aaa;border-radius:6px;background:#fff;cursor:pointer}
+button:hover{background:#eee}
+#letters{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+#letters button{min-width:34px}
+#letters .active{font-weight:bold;outline:2px solid #222}
+#status{margin-top:12px;color:#666;font-size:14px}
+#results{padding:20px}
+.table-wrap{max-width:1500px;margin:auto;background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden}
+.entry{display:grid;grid-template-columns:1.1fr 1fr 120px 1.2fr .9fr;gap:14px;padding:14px;border-top:1px solid #ddd;align-items:start}
+.entry:first-child{border-top:0}
+.column-head{display:grid;grid-template-columns:1.1fr 1fr 120px 1.2fr .9fr;gap:14px;padding:12px 14px;background:#ecece7;border-bottom:2px solid #bbb;font-weight:bold;font-size:14px}
+.sig img{max-width:100%;max-height:220px;display:block}
+.missing{padding:35px 10px;border:1px dashed #bbb;background:#fafafa;color:#888;text-align:center}
+.source a{color:#222}
+.hint{font-size:13px;color:#666;margin-top:7px}
+#error{margin:20px auto;max-width:1500px;padding:15px;background:#fff0f0;border:1px solid #c99;color:#700;border-radius:7px}
+@media(max-width:900px){
+ .column-head{display:none}
+ .entry{grid-template-columns:1fr 1fr}
+ .sig,.source{grid-column:1/-1}
+ .mobile-label{display:block}
+}
+@media(min-width:901px){.mobile-label{display:none}}
+@media(max-width:600px){
+ .entry{grid-template-columns:1fr}
+ .sig,.source{grid-column:auto}
+}
+</style>
 </head>
 <body>
-
+<header>
+<div class="wrap">
 <h1>Botanical Signatures</h1>
+<p>A visual reference for identifying botanical collectors by their signatures.</p>
 
-    <input type="text" id="searchInput" placeholder="Search for any part of a name">
+<div class="controls">
+<input id="search" type="search" placeholder="Search names…  * = any characters, ? = one character" autocomplete="off">
+<button id="clear">Clear</button>
+</div>
+<div class="hint">Wildcard examples: <strong>Abbe*</strong> finds names beginning with Abbe; <strong>*smith*</strong> finds Smith anywhere; <strong>Ag?siz</strong> uses ? for one character.</div>
 
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Other Name(s)/Spelling(s)</th>
-                <th>Date(s)</th>
-                <th>Signature</th>
-                <th>Source</th>
-            </tr>
-        </thead>
-        <tbody>
-        
-  <tr>
-    <td><a>Abbe, Cleveland</a></td>
-    <td></td>
-    <td>1838-1916</td>
-    <td><img src="https://majacanavan.github.io/handwriting/images/Abbe-Cleveland.png"></td>
-    <td><a href="https://as.huntbot.org/repositories/2/resources/7">Hunt Institute</a></td>
-  </tr>
-  
-  
-  <tr>
-    <td><a href="https://majacanavan.github.io/handwriting/people/Abedin-Sultan-ul.html">Abedin, Sultan ul</a></td>
-    <td></td>
-    <td>fl. 1971</td>
-    <td><img src="https://majacanavan.github.io/handwriting/images/Abedin-Sultan-ul-1.png"></td>
-    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
-  </tr>
-  
-  
-  <tr>
-    <td>Achten, Lode Théodoor</td>
-    <td>Achten, Lode Theodoor</td>
-    <td>1883-1933</td>
-    <td><img src="https://majacanavan.github.io/handwriting/images/Achten-Lode-Theodoor.png"></td>
-    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
-  </tr>
-  
-  
-  <tr>
-    <td><a href="https://majacanavan.github.io/handwriting/people/Adamovic-Lujo-1.html">Adamovic, Lujo</a></td>
-    <td></td>
-    <td>1864-1935</td>
-    <td><img src="https://majacanavan.github.io/handwriting/images/Adamovic-Lujo-1-1.png"></td>
-    <td><a href="https://herbonauten.bgbm.org/herbonautenwiki/uploads/herbonautenwiki/archive/1/14/20250114140143%21Sammler_Signaturen_GEP.pdf">Georg E. Probst</a></td>
-  </tr>
-  
-    <tr>
-    <td>Adamovic, Lujo</td>
-    <td></td>
-    <td>1864-1935</td>
-    <td><img src="https://majacanavan.github.io/handwriting/images/Adamovic-Lujo-2-1.png"></td>
-    <td><a href="https://as.huntbot.org/repositories/2/resources/7">Hunt Institute</a></td>
-  </tr>
-            
-        </tbody>
-    </table>
+<div id="letters"></div>
+<div id="status">Loading collector list…</div>
+</div>
+</header>
 
-    <script>
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            // 1. Get the user input value and convert to lowercase for case-insensitive matching
-            const filter = this.value.toLowerCase();
-            
-            // 2. Grab all table rows inside the tbody (ignoring the header)
-            const rows = document.querySelectorAll('#dataTable tbody tr');
+<div id="error" style="display:none"></div>
+<div id="results"></div>
 
-            rows.forEach(row => {
-                // 3. Target specific columns by their index
-                const nameCell = row.cells[0]; // First column
-                const cityCell = row.cells[1]; // Second column
+<script>
+const DATA_URL="https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
+const IMAGE_BASE="https://majacanavan.github.io/handwriting/images/";
 
-                if (nameCell && cityCell) {
-                    // 4. Extract text content
-                    const nameText = nameCell.textContent.toLowerCase();
-                    const cityText = cityCell.textContent.toLowerCase();
+let data=[];
+let activeLetter="";
+let query="";
 
-                    // 5. Check if the filter matches either of the two columns (OR logic)
-                    if (nameText.includes(filter) || cityText.includes(filter)) {
-                        row.style.display = ''; // Show row
-                    } else {
-                        row.style.display = 'none'; // Hide row
-                    }
-                }
-            });
-        });
-    </script>
+function norm(s){
+ return (s||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .toLowerCase()
+  .trim();
+}
 
+/* Convert * and ? wildcards to a safe regular expression. */
+function wildcardRegex(pattern){
+ const escaped=norm(pattern).replace(/[.+^${}()|[\]\\]/g,"\\$&");
+ const regex=escaped.replace(/\*/g,".*").replace(/\?/g,".");
+ try{return new RegExp(regex,"i")}
+ catch(e){return null}
+}
+
+function matchesSearch(row){
+ if(!query)return true;
+ const re=wildcardRegex(query);
+ if(!re)return false;
+ return re.test(norm(row.name)) || re.test(norm(row.other));
+}
+
+function parseNamesTxt(text){
+ return text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim()).map(line=>{
+   const p=line.split("\t");
+   return {
+    name:(p[0]||"").trim(),
+    other:(p[1]||"").trim(),
+    dates:(p[2]||"").trim(),
+    source:(p[4]||"").trim(),
+    sourceUrl:(p[5]||"").trim()
+   };
+ }).filter(r=>r.name).sort((a,b)=>
+   a.name.localeCompare(b.name,undefined,{sensitivity:"base",numeric:true}) ||
+   a.source.localeCompare(b.source,undefined,{sensitivity:"base"})
+ );
+}
+
+function imageName(name){
+ return name.replace(/^\uFEFF/,"")
+  .replace(/['’]/g,"")
+  .replace(/&/g,"and")
+  .replace(/[,:;()[\]{}]/g,"")
+  .replace(/\s+/g,"-")
+  .replace(/[\/\\?%#"]/g,"")
+  .replace(/-+/g,"-")
+  .replace(/^-|-$/g,"")+".png";
+}
+
+function imageUrl(name){return IMAGE_BASE+encodeURIComponent(imageName(name));}
+
+function initial(name){
+ const c=norm(name).charAt(0);
+ return /^[a-z]$/.test(c)?c:"#";
+}
+
+function makeLetters(){
+ const box=document.getElementById("letters");
+ box.innerHTML="";
+ const all=document.createElement("button");
+ all.textContent="All";
+ all.className=activeLetter===""?"active":"";
+ all.onclick=()=>{activeLetter="";render()};
+ box.appendChild(all);
+ for(let i=0;i<26;i++){
+   const l=String.fromCharCode(97+i);
+   const b=document.createElement("button");
+   b.textContent=l.toUpperCase();
+   b.className=activeLetter===l?"active":"";
+   b.onclick=()=>{activeLetter=l;render()};
+   box.appendChild(b);
+ }
+}
+
+function makeCell(label,value,cls){
+ const d=document.createElement("div");
+ if(cls)d.className=cls;
+ const lab=document.createElement("div");
+ lab.className="mobile-label";
+ lab.style.fontWeight="bold";
+ lab.style.fontSize="12px";
+ lab.style.color="#777";
+ lab.style.marginBottom="3px";
+ lab.textContent=label;
+ d.appendChild(lab);
+ d.appendChild(value);
+ return d;
+}
+
+function textNode(value){return document.createTextNode(value||"—");}
+
+function makeEntry(row){
+ const e=document.createElement("div");
+ e.className="entry";
+
+ const name=document.createElement("strong");
+ name.textContent=row.name;
+
+ const other=textNode(row.other);
+ const dates=textNode(row.dates);
+
+ const sig=document.createElement("div");
+ sig.className="sig";
+ const a=document.createElement("a");
+ a.href=imageUrl(row.name);a.target="_blank";a.rel="noopener";
+ const img=document.createElement("img");
+ img.src=imageUrl(row.name);
+ img.alt="Signature of "+row.name;
+ img.loading="lazy";
+ img.decoding="async";
+ img.onerror=()=>{
+   a.remove();
+   const m=document.createElement("div");
+   m.className="missing";
+   m.textContent="Image not added yet";
+   sig.appendChild(m);
+ };
+ a.appendChild(img);sig.appendChild(a);
+
+ const source=document.createElement("div");
+ source.className="source";
+ if(row.sourceUrl){
+   const sa=document.createElement("a");
+   sa.href=row.sourceUrl;sa.target="_blank";sa.rel="noopener";
+   sa.textContent=row.source||"Source";
+   source.appendChild(sa);
+ }else source.appendChild(textNode(row.source));
+
+ e.append(
+  makeCell("Name",name),
+  makeCell("Other name(s)",other),
+  makeCell("Dates",dates),
+  makeCell("Signature",sig),
+  makeCell("Source",source)
+ );
+ return e;
+}
+
+function render(){
+ makeLetters();
+ const rows=data.filter(r=>
+  (!activeLetter||initial(r.name)===activeLetter) &&
+  matchesSearch(r)
+ );
+
+ let scope="";
+ if(query)scope=' matching "'+query+'"';
+ else if(activeLetter)scope=" in "+activeLetter.toUpperCase();
+ document.getElementById("status").textContent=rows.length.toLocaleString()+" entries"+scope;
+
+ const box=document.getElementById("results");
+ box.innerHTML="";
+ const wrap=document.createElement("div");
+ wrap.className="table-wrap";
+
+ const head=document.createElement("div");
+ head.className="column-head";
+ ["Name","Other name(s) / spelling(s)","Dates","Signature","Source"].forEach(x=>{
+   const d=document.createElement("div");
+   d.textContent=x;
+   head.appendChild(d);
+ });
+ wrap.appendChild(head);
+
+ const frag=document.createDocumentFragment();
+ rows.forEach(r=>frag.appendChild(makeEntry(r)));
+ wrap.appendChild(frag);
+ box.appendChild(wrap);
+}
+
+async function loadData(){
+ try{
+  const response=await fetch(DATA_URL,{cache:"no-cache"});
+  if(!response.ok)throw new Error("GitHub returned HTTP "+response.status);
+  data=parseNamesTxt(await response.text());
+  document.getElementById("status").textContent=data.length.toLocaleString()+" collector entries loaded";
+  render();
+ }catch(err){
+  document.getElementById("status").textContent="Could not load collector list.";
+  const error=document.getElementById("error");
+  error.style.display="block";
+  error.textContent="Could not load names.txt from GitHub: "+err.message;
+ }
+}
+
+document.getElementById("search").addEventListener("input",e=>{
+ query=e.target.value;
+ render();
+});
+document.getElementById("clear").addEventListener("click",()=>{
+ document.getElementById("search").value="";
+ query="";
+ activeLetter="";
+ render();
+});
+loadData();
+</script>
 </body>
 </html>
