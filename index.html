@@ -519,411 +519,1642 @@
         </div>
         
         <script>
-            const DATA_URL = "https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
-            const IMAGE_BASE = "https://majacanavan.github.io/handwriting/images/";
-            const CACHE_KEY = "botanical-signatures-names-v1";
-            const PAGE_SIZE = 50;
-            let data = [];
-            let activeLetter = "";
-            let query = "";
-            let visibleCount = PAGE_SIZE;
+<script>
+    const DATA_URL = "https://raw.githubusercontent.com/majacanavan/handwriting/main/names.txt";
+    const IMAGE_BASE = "https://majacanavan.github.io/handwriting/images/";
+    const CACHE_KEY = "botanical-signatures-names-v1";
+    const PAGE_SIZE = 50;
 
-            function norm(s) {
-                return (s || "")
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .toLowerCase()
-                    .trim();
-            }
-            function wildcardRegex(pattern) {
-                const escaped = norm(pattern).replace(/[.+^${}()|[\]\\]/g, "\\$&");
-                try {
-                    return new RegExp(escaped.replace(/\*/g, ".*").replace(/\?/g, "."), "i");
-                } catch (e) {
-                    return null;
-                }
-            }
-            function matchesSearch(row) {
-                if (!query) return true;
-                const re = wildcardRegex(query);
-                return !!re && (re.test(norm(row.name)) || re.test(norm(row.other)));
-            }
-            function parseNamesTxt(text) {
-                return text
-                    .replace(/^\uFEFF/, "")
-                    .split(/\r?\n/)
-                    .filter((x) => x.trim())
-                    .map((line) => {
-                        const p = line.split("\t");
-                        return {
-                            name: (p[0] || "").trim(),
-                            other: (p[1] || "").trim(),
-                            dates: (p[2] || "").trim(),
-                            source: (p[4] || "").trim(),
-                            sourceUrl: (p[5] || "").trim(),
-                        };
-                    })
-                    .filter((r) => r.name)
-                    .sort(
-                        (a, b) =>
-                            a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }) ||
-                            a.source.localeCompare(b.source, undefined, { sensitivity: "base" })
-                    );
-            }
-            function imageName(name) {
-                return (
-                    name
-                        .replace(/^\uFEFF/, "")
-                        .replace(/['’]/g, "")
-                        .replace(/&/g, "and")
-                        .replace(/[,:;()[\]{}]/g, "")
-                        .replace(/\s+/g, "-")
-                        .replace(/[\/\\?%#"]/g, "")
-                        .replace(/-+/g, "-")
-                        .replace(/^-|-$/g, "") + ".png"
-                );
-            }
-            function imageUrl(name) {
-                return IMAGE_BASE + encodeURIComponent(imageName(name));
-            }
+    let data = [];
+    let activeLetter = "";
+    let query = "";
+    let visibleCount = PAGE_SIZE;
 
-            // TEST ONLY: the first collector has three temporary carousel images.
-            // All other collectors continue to use their normal single image.
-            let imageManifest = {};
-            function signatureUrls(row) {
-                const listed = imageManifest[row.name];
-                if (Array.isArray(listed) && listed.length) {
-                    return listed.map((file) => IMAGE_BASE + encodeURIComponent(file));
-                }
-                return [imageUrl(row.name)];
-            }
+    /*
+     * images.json is an ARRAY, not an object.
+     *
+     * Example:
+     *
+     * [
+     *   {
+     *     "name": "Abbe, Cleveland",
+     *     "images": [
+     *       "Abbe-Cleveland-1.png",
+     *       "Abbe-Cleveland-2.png",
+     *       "Abbe-Cleveland-3.png"
+     *     ]
+     *   },
+     *   {
+     *     "name": "Acocks, John Phillip Harison",
+     *     "images": [
+     *       "Acocks-John Phillip Harison-1.png"
+     *     ]
+     *   },
+     *   {
+     *     "name": "Acocks, John Phillip Harison",
+     *     "images": [
+     *       "Acocks-John Phillip Harison-2.png"
+     *     ]
+     *   }
+     * ]
+     *
+     * Therefore duplicate names must be matched by OCCURRENCE,
+     * rather than simply by name.
+     */
+    let imageManifest = [];
 
-            // Builds the signature cell for a row. Every image (single or multi) gets a
-            // carousel-style container so the same zoom viewer + hover tooltip works for
-            // all of them; prev/next controls and the count label are only added when
-            // there's actually more than one image to page through.
-            function makeSignature(row, rowIndex) {
-                const urls = signatureUrls(row);
-                const wrap = document.createElement("div");
-                wrap.className = "signature-wrap";
+    /*
+     * Each row gets its own image list after names.txt and images.json
+     * have both loaded.
+     *
+     * This means:
+     *
+     * Smith, John #1 -> images.json Smith #1
+     * Smith, John #2 -> images.json Smith #2
+     * Smith, John #3 -> images.json Smith #3
+     *
+     * Duplicate names therefore remain separate.
+     */
+    let rowImageLists = new WeakMap();
 
-                const carousel = document.createElement("div");
-                carousel.className = "signature-carousel";
-                carousel.id = "carousel-" + rowIndex;
-                carousel.dataset.index = "0";
 
-                const img = document.createElement("img");
-                img.className = "lazy-image carousel-img";
-                img.dataset.src = urls[0];
-                img.dataset.carouselUrls = JSON.stringify(urls);
-                img.alt = "Signature of " + row.name;
-                img.onclick = () => openViewer(carousel);
+    /* =========================================================
+       GENERAL HELPERS
+       ========================================================= */
 
-                if (urls.length > 1) {
-                    const prev = document.createElement("button");
-                    prev.className = "carousel-btn";
-                    prev.type = "button";
-                    prev.textContent = "‹";
-                    prev.setAttribute("aria-label", "Previous signature");
-                    prev.onclick = () => moveCarousel(carousel, -1);
+    function norm(s) {
+        return (s || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
 
-                    const next = document.createElement("button");
-                    next.className = "carousel-btn";
-                    next.type = "button";
-                    next.textContent = "›";
-                    next.setAttribute("aria-label", "Next signature");
-                    next.onclick = () => moveCarousel(carousel, 1);
 
-                    const count = document.createElement("div");
-                    count.className = "carousel-count";
-                    count.textContent = "1 / " + urls.length;
+    function wildcardRegex(pattern) {
+        const escaped = norm(pattern).replace(/[.+^${}()|[\]\\]/g, "\\$&");
 
-                    carousel.append(prev, img, next);
-                    wrap.append(carousel, count);
-                } else {
-                    carousel.append(img);
-                    wrap.append(carousel);
-                }
+        try {
+            return new RegExp(
+                escaped
+                    .replace(/\*/g, ".*")
+                    .replace(/\?/g, "."),
+                "i"
+            );
+        } catch (e) {
+            return null;
+        }
+    }
 
-                return wrap;
-            }
 
-            let activeViewerCarousel = null;
-            let viewerZoom = 1;
-            function openViewer(carousel) {
-                const img = carousel.querySelector("img");
-                if (!img) return;
-                activeViewerCarousel = carousel;
-                viewerZoom = 1;
-                document.getElementById("zoomViewer").classList.add("open");
-                document.body.style.overflow = "hidden";
-                updateViewer();
-            }
-            function updateViewer() {
-                if (!activeViewerCarousel) return;
-                const img = activeViewerCarousel.querySelector("img");
-                const urls = JSON.parse(img.dataset.carouselUrls || "[]");
-                const current = Number(activeViewerCarousel.dataset.index || 0);
-                const viewerImg = document.getElementById("zoomImage");
-                viewerImg.src = urls[current];
-                viewerImg.alt = img.alt;
-                viewerImg.style.transform = "scale(" + viewerZoom + ")";
-                document.getElementById("zoomLevel").textContent = Math.round(viewerZoom * 100) + "%";
-                document.getElementById("zoomCaption").textContent = current + 1 + " / " + urls.length;
-                const multi = urls.length > 1;
-                document.getElementById("zoomPrev").style.display = multi ? "" : "none";
-                document.getElementById("zoomNext").style.display = multi ? "" : "none";
-            }
-            function changeZoom(amount) {
-                viewerZoom = Math.max(0.5, Math.min(4, viewerZoom + amount));
-                updateViewer();
-            }
-            function resetZoom() {
-                viewerZoom = 1;
-                updateViewer();
-            }
-            function closeViewer() {
-                document.getElementById("zoomViewer").classList.remove("open");
-                document.body.style.overflow = "";
-                activeViewerCarousel = null;
-            }
-            document.getElementById("zoomPrev").onclick = () => {
-                if (!activeViewerCarousel) return;
-                moveCarousel(activeViewerCarousel, -1);
-                updateViewer();
-            };
-            document.getElementById("zoomNext").onclick = () => {
-                if (!activeViewerCarousel) return;
-                moveCarousel(activeViewerCarousel, 1);
-                updateViewer();
-            };
-            document.getElementById("zoomViewer").addEventListener("click", (e) => {
-                if (e.target.id === "zoomViewer") closeViewer();
-            });
-            document.addEventListener("keydown", (e) => {
-                const viewer = document.getElementById("zoomViewer");
-                if (!viewer.classList.contains("open")) return;
-                if (e.key === "Escape") closeViewer();
-                if (e.key === "ArrowLeft") document.getElementById("zoomPrev").click();
-                if (e.key === "ArrowRight") document.getElementById("zoomNext").click();
-                if (e.key === "+") changeZoom(0.2);
-                if (e.key === "-") changeZoom(-0.2);
-            });
-            function moveCarousel(carousel, direction) {
-                const img = carousel.querySelector("img");
-                if (!img) return;
-                const urls = JSON.parse(img.dataset.carouselUrls);
-                let current = Number(carousel.dataset.index || 0);
-                current = (current + direction + urls.length) % urls.length;
-                carousel.dataset.index = current;
-                img.src = urls[current];
-                img.removeAttribute("data-src");
-                const countEl = carousel.parentElement.querySelector(".carousel-count");
-                if (countEl) countEl.textContent = current + 1 + " / " + urls.length;
-            }
+    function matchesSearch(row) {
+        if (!query) return true;
 
-            function initial(name) {
-                const c = norm(name).charAt(0);
-                return /^[a-z]$/.test(c) ? c : "#";
-            }
-            function makeLetters() {
-                const box = document.getElementById("letters");
-                box.innerHTML = "";
-                const all = document.createElement("button");
-                all.textContent = "All";
-                all.className = activeLetter === "" ? "active" : "";
-                all.onclick = () => {
-                    activeLetter = "";
-                    visibleCount = PAGE_SIZE;
-                    render();
+        const re = wildcardRegex(query);
+
+        return (
+            !!re &&
+            (
+                re.test(norm(row.name)) ||
+                re.test(norm(row.other))
+            )
+        );
+    }
+
+
+    /* =========================================================
+       NAMES.TXT
+       ========================================================= */
+
+    function parseNamesTxt(text) {
+        return text
+            .replace(/^\uFEFF/, "")
+            .split(/\r?\n/)
+            .filter((x) => x.trim())
+            .map((line) => {
+                const p = line.split("\t");
+
+                return {
+                    name: (p[0] || "").trim(),
+                    other: (p[1] || "").trim(),
+                    dates: (p[2] || "").trim(),
+                    source: (p[4] || "").trim(),
+                    sourceUrl: (p[5] || "").trim(),
                 };
-                box.appendChild(all);
-                for (let i = 0; i < 26; i++) {
-                    const l = String.fromCharCode(97 + i),
-                        b = document.createElement("button");
-                    b.textContent = l.toUpperCase();
-                    b.className = activeLetter === l ? "active" : "";
-                    b.onclick = () => {
-                        activeLetter = l;
-                        visibleCount = PAGE_SIZE;
-                        render();
-                    };
-                    box.appendChild(b);
-                }
-            }
-            function makeTextCell(label, text, bold = false) {
-                const d = document.createElement("div");
-                const lab = document.createElement("div");
-                lab.className = "mobile-label";
-                lab.textContent = label;
-                d.appendChild(lab);
-                const v = document.createElement(bold ? "strong" : "span");
-                v.textContent = text || "—";
-                d.appendChild(v);
-                return d;
-            }
-            function makeEntry(row, rowIndex) {
-                const e = document.createElement("div");
-                e.className = "entry";
-                e.appendChild(makeTextCell("Name", row.name, true));
-                e.appendChild(makeTextCell("Other name(s) / Spelling(s)", row.other));
-                e.appendChild(makeTextCell("Date(s)", row.dates));
-                const sig = document.createElement("div");
-                sig.className = "signature-box";
-                sig.appendChild(makeSignature(row, rowIndex));
-                e.appendChild(sig);
-                const source = document.createElement("div");
-                source.className = "source";
-                const sl = document.createElement("div");
-                sl.className = "mobile-label";
-                sl.textContent = "Source";
-                source.appendChild(sl);
-                if (row.sourceUrl) {
-                    const a = document.createElement("a");
-                    a.href = row.sourceUrl;
-                    a.target = "_blank";
-                    a.rel = "noopener";
-                    a.textContent = row.source || "Source";
-                    source.appendChild(a);
-                } else source.appendChild(document.createTextNode(row.source || "—"));
-                e.appendChild(source);
-                return e;
-            }
+            })
+            .filter((r) => r.name)
+            .sort(
+                (a, b) =>
+                    a.name.localeCompare(
+                        b.name,
+                        undefined,
+                        {
+                            sensitivity: "base",
+                            numeric: true
+                        }
+                    ) ||
+                    a.source.localeCompare(
+                        b.source,
+                        undefined,
+                        {
+                            sensitivity: "base"
+                        }
+                    )
+            );
+    }
 
-            const imageObserver = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (!entry.isIntersecting) return;
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.onload = () => imageObserver.unobserve(img);
-                        img.onerror = () => {
-                            const m = document.createElement("div");
-                            m.className = "missing";
-                            m.textContent = "Image not added yet";
-                            img.replaceWith(m);
-                            imageObserver.unobserve(img);
-                        };
-                    });
-                },
-                { rootMargin: "500px 0px" }
+
+    /* =========================================================
+       IMAGE MATCHING
+       ========================================================= */
+
+    function imageName(name) {
+        return (
+            name
+                .replace(/^\uFEFF/, "")
+                .replace(/['’]/g, "")
+                .replace(/&/g, "and")
+                .replace(/[,:;()[\]{}]/g, "")
+                .replace(/\s+/g, "-")
+                .replace(/[\/\\?%#"]/g, "")
+                .replace(/-+/g, "-")
+                .replace(/^-|-$/g, "") +
+            ".png"
+        );
+    }
+
+
+    function imageUrl(name) {
+        return IMAGE_BASE + encodeURIComponent(imageName(name));
+    }
+
+
+    /*
+     * Convert a filename from images.json into its actual URL.
+     *
+     * encodeURIComponent is important because some of your filenames
+     * contain spaces, accents, punctuation, etc.
+     */
+    function manifestImageUrl(filename) {
+        return IMAGE_BASE + encodeURIComponent(filename);
+    }
+
+
+    /*
+     * Attach images.json entries to the corresponding names.txt rows.
+     *
+     * IMPORTANT:
+     * We do NOT create:
+     *
+     *     imageManifest[row.name]
+     *
+     * because duplicate names would overwrite/collide.
+     *
+     * Instead, every occurrence of a name gets the next corresponding
+     * entry from images.json.
+     */
+    function attachImageManifestToRows() {
+        rowImageLists = new WeakMap();
+
+        if (!Array.isArray(imageManifest)) {
+            console.error(
+                "images.json was loaded, but it is not an array."
             );
 
-            function render() {
-                makeLetters();
-                const rows = data.filter(
-                    (r) => (!activeLetter || initial(r.name) === activeLetter) && matchesSearch(r)
+            return;
+        }
+
+        /*
+         * Group manifest entries by normalized name.
+         *
+         * Example:
+         *
+         * "Smith, John" -> [
+         *     { images: [...] },
+         *     { images: [...] },
+         *     { images: [...] }
+         * ]
+         */
+        const manifestByName = new Map();
+
+        imageManifest.forEach((entry) => {
+            if (!entry || !entry.name) return;
+
+            const key = norm(entry.name);
+
+            if (!manifestByName.has(key)) {
+                manifestByName.set(key, []);
+            }
+
+            manifestByName.get(key).push(entry);
+        });
+
+
+        /*
+         * Track which occurrence of each name we are currently
+         * assigning.
+         */
+        const occurrenceCounters = new Map();
+
+
+        data.forEach((row) => {
+            const key = norm(row.name);
+
+            const occurrence =
+                occurrenceCounters.get(key) || 0;
+
+            const entries =
+                manifestByName.get(key) || [];
+
+            const entry = entries[occurrence];
+
+            occurrenceCounters.set(
+                key,
+                occurrence + 1
+            );
+
+
+            if (
+                entry &&
+                Array.isArray(entry.images) &&
+                entry.images.length
+            ) {
+                rowImageLists.set(
+                    row,
+                    entry.images.map(manifestImageUrl)
                 );
-                const shown = rows.slice(0, visibleCount);
-                document.getElementById("status").textContent =
-                    rows.length.toLocaleString() +
-                    " entries" +
-                    (query ? ' matching "' + query + '"' : activeLetter ? " in " + activeLetter.toUpperCase() : "") +
-                    (rows.length > shown.length ? "  —  showing " + shown.length : "");
-                const box = document.getElementById("results");
-                box.innerHTML = "";
-                const wrap = document.createElement("div");
-                wrap.className = "table-wrap";
-                const head = document.createElement("div");
-                head.className = "column-head";
-                ["Name", "Other name(s) / Spelling(s)", "Date(s)", "Signature", "Source"].forEach((x) => {
-                    const d = document.createElement("div");
-                    d.textContent = x;
-                    head.appendChild(d);
-                });
-                wrap.appendChild(head);
-                const frag = document.createDocumentFragment();
-                shown.forEach((r, i) => frag.appendChild(makeEntry(r, i)));
-                wrap.appendChild(frag);
-                box.appendChild(wrap);
-                wrap.querySelectorAll(".lazy-image").forEach((img) => imageObserver.observe(img));
-                if (shown.length < rows.length) {
-                    const more = document.createElement("button");
-                    more.className = "load-more";
-                    more.textContent = `Load next ${Math.min(PAGE_SIZE, rows.length - shown.length)} entries`;
-                    more.onclick = () => {
-                        visibleCount += PAGE_SIZE;
-                        render();
-                    };
-                    box.appendChild(more);
-                }
+            } else {
+                /*
+                 * If there is no images.json entry for this row,
+                 * use the normal single-image filename as a fallback.
+                 */
+                rowImageLists.set(
+                    row,
+                    [imageUrl(row.name)]
+                );
+            }
+        });
+    }
+
+
+    /*
+     * Return the image URLs belonging specifically to this row.
+     */
+    function signatureUrls(row) {
+        const urls = rowImageLists.get(row);
+
+        if (Array.isArray(urls) && urls.length) {
+            return urls;
+        }
+
+        return [imageUrl(row.name)];
+    }
+
+
+    /* =========================================================
+       SIGNATURE / CAROUSEL
+       ========================================================= */
+
+    function makeSignature(row, rowIndex) {
+        const urls = signatureUrls(row);
+
+        const wrap = document.createElement("div");
+        wrap.className = "signature-wrap";
+
+        const carousel = document.createElement("div");
+        carousel.className = "signature-carousel";
+
+        carousel.id =
+            "carousel-" +
+            Math.random().toString(36).slice(2) +
+            "-" +
+            rowIndex;
+
+        carousel.dataset.index = "0";
+
+
+        const img = document.createElement("img");
+
+        img.className =
+            "lazy-image carousel-img";
+
+        /*
+         * The first image is lazy-loaded.
+         */
+        img.dataset.src = urls[0];
+
+        /*
+         * Store ALL images on the carousel so the zoom viewer
+         * and next/previous controls can use them.
+         */
+        img.dataset.carouselUrls =
+            JSON.stringify(urls);
+
+        img.alt =
+            "Signature of " + row.name;
+
+
+        img.onclick = () =>
+            openViewer(carousel);
+
+
+        /*
+         * Multiple images = carousel controls.
+         */
+        if (urls.length > 1) {
+
+            const prev =
+                document.createElement("button");
+
+            prev.className =
+                "carousel-btn";
+
+            prev.type = "button";
+
+            prev.textContent = "‹";
+
+            prev.setAttribute(
+                "aria-label",
+                "Previous signature"
+            );
+
+            prev.onclick = (event) => {
+                event.stopPropagation();
+
+                moveCarousel(
+                    carousel,
+                    -1
+                );
+            };
+
+
+            const next =
+                document.createElement("button");
+
+            next.className =
+                "carousel-btn";
+
+            next.type = "button";
+
+            next.textContent = "›";
+
+            next.setAttribute(
+                "aria-label",
+                "Next signature"
+            );
+
+            next.onclick = (event) => {
+                event.stopPropagation();
+
+                moveCarousel(
+                    carousel,
+                    1
+                );
+            };
+
+
+            const count =
+                document.createElement("div");
+
+            count.className =
+                "carousel-count";
+
+            count.textContent =
+                "1 / " + urls.length;
+
+
+            carousel.append(
+                prev,
+                img,
+                next
+            );
+
+            wrap.append(
+                carousel,
+                count
+            );
+
+        } else {
+
+            /*
+             * Single images still use the same carousel container
+             * so they get the exact same zoom behavior.
+             */
+            carousel.appendChild(img);
+
+            wrap.appendChild(carousel);
+        }
+
+
+        return wrap;
+    }
+
+
+    /* =========================================================
+       ZOOM VIEWER
+       ========================================================= */
+
+    let activeViewerCarousel = null;
+
+    let viewerZoom = 1;
+
+
+    function openViewer(carousel) {
+        const img =
+            carousel.querySelector("img");
+
+        if (!img) return;
+
+        activeViewerCarousel =
+            carousel;
+
+        viewerZoom = 1;
+
+        document
+            .getElementById("zoomViewer")
+            .classList.add("open");
+
+        document.body.style.overflow =
+            "hidden";
+
+        updateViewer();
+    }
+
+
+    function updateViewer() {
+        if (!activeViewerCarousel) {
+            return;
+        }
+
+        const img =
+            activeViewerCarousel.querySelector("img");
+
+        if (!img) return;
+
+
+        const urls =
+            JSON.parse(
+                img.dataset.carouselUrls || "[]"
+            );
+
+
+        if (!urls.length) {
+            return;
+        }
+
+
+        let current =
+            Number(
+                activeViewerCarousel.dataset.index || 0
+            );
+
+
+        /*
+         * Protect against an invalid carousel index.
+         */
+        if (
+            current < 0 ||
+            current >= urls.length
+        ) {
+            current = 0;
+
+            activeViewerCarousel.dataset.index =
+                "0";
+        }
+
+
+        const viewerImg =
+            document.getElementById("zoomImage");
+
+
+        viewerImg.src =
+            urls[current];
+
+        viewerImg.alt =
+            img.alt;
+
+
+        viewerImg.style.transform =
+            "scale(" +
+            viewerZoom +
+            ")";
+
+
+        document.getElementById(
+            "zoomLevel"
+        ).textContent =
+            Math.round(
+                viewerZoom * 100
+            ) + "%";
+
+
+        document.getElementById(
+            "zoomCaption"
+        ).textContent =
+            current + 1 +
+            " / " +
+            urls.length;
+
+
+        const multi =
+            urls.length > 1;
+
+
+        document.getElementById(
+            "zoomPrev"
+        ).style.display =
+            multi ? "" : "none";
+
+
+        document.getElementById(
+            "zoomNext"
+        ).style.display =
+            multi ? "" : "none";
+    }
+
+
+    function changeZoom(amount) {
+        viewerZoom =
+            Math.max(
+                0.5,
+                Math.min(
+                    4,
+                    viewerZoom + amount
+                )
+            );
+
+        updateViewer();
+    }
+
+
+    function resetZoom() {
+        viewerZoom = 1;
+
+        updateViewer();
+    }
+
+
+    function closeViewer() {
+        document
+            .getElementById("zoomViewer")
+            .classList.remove("open");
+
+        document.body.style.overflow =
+            "";
+
+        activeViewerCarousel =
+            null;
+    }
+
+
+    /*
+     * Previous image in zoom viewer.
+     */
+    document.getElementById(
+        "zoomPrev"
+    ).onclick = () => {
+
+        if (!activeViewerCarousel) {
+            return;
+        }
+
+        moveCarousel(
+            activeViewerCarousel,
+            -1
+        );
+
+        updateViewer();
+    };
+
+
+    /*
+     * Next image in zoom viewer.
+     */
+    document.getElementById(
+        "zoomNext"
+    ).onclick = () => {
+
+        if (!activeViewerCarousel) {
+            return;
+        }
+
+        moveCarousel(
+            activeViewerCarousel,
+            1
+        );
+
+        updateViewer();
+    };
+
+
+    /*
+     * Clicking the dark background closes the viewer.
+     */
+    document.getElementById(
+        "zoomViewer"
+    ).addEventListener(
+        "click",
+        (e) => {
+            if (
+                e.target.id ===
+                "zoomViewer"
+            ) {
+                closeViewer();
+            }
+        }
+    );
+
+
+    /*
+     * Keyboard controls.
+     */
+    document.addEventListener(
+        "keydown",
+        (e) => {
+
+            const viewer =
+                document.getElementById(
+                    "zoomViewer"
+                );
+
+
+            if (
+                !viewer.classList.contains(
+                    "open"
+                )
+            ) {
+                return;
             }
 
-            async function loadData() {
-                try {
-                    // First use a cached copy, so refreshing the page does not repeatedly hit GitHub.
-                    const cached = localStorage.getItem(CACHE_KEY);
-                    if (cached) {
-                        try {
-                            data = JSON.parse(cached);
-                            render();
-                        } catch (e) {}
-                    }
-                    try {
-                        const imageResponse = await fetch("images.json", { cache: "no-cache" });
-                        if (imageResponse.ok) imageManifest = await imageResponse.json();
-                    } catch (e) {
-                        imageManifest = {};
-                    }
-                    const response = await fetch(DATA_URL, { cache: "no-cache" });
-                    if (!response.ok) throw new Error("GitHub returned HTTP " + response.status);
-                    const fresh = parseNamesTxt(await response.text());
-                    data = fresh;
-                    try {
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(fresh));
-                    } catch (e) {}
-                    render();
-                } catch (err) {
-                    if (!data.length) {
-                        document.getElementById("status").textContent = "Could not load collector list.";
-                        const error = document.getElementById("error");
-                        error.style.display = "block";
-                        error.textContent = "Could not load names.txt from GitHub: " + err.message;
-                    }
-                }
+
+            if (e.key === "Escape") {
+                closeViewer();
+                return;
             }
 
-            document.getElementById("search").addEventListener("input", (e) => {
-                query = e.target.value;
-                visibleCount = PAGE_SIZE;
-                render();
-            });
-            document.getElementById("clear").addEventListener("click", () => {
-                document.getElementById("search").value = "";
-                query = "";
-                activeLetter = "";
-                visibleCount = PAGE_SIZE;
-                render();
-            });
 
-            // Cursor-following "Click to zoom" tooltip, shown while hovering any
-            // signature image. Replaces the old static "Tip: click a signature image
-            // to zoom in." text under the search box. Adapted (without jQuery) from
-            // https://stackoverflow.com/a/62875968 — Alberto Rhuertas, modified by
-            // community, CC BY-SA 4.0, retrieved 2026-09-14.
-            (function () {
-                const tip = document.getElementById("hoverTip");
-                let hovering = false;
-                document.addEventListener("mousemove", (e) => {
-                    const overImage = e.target.closest && e.target.closest(".carousel-img");
-                    if (overImage) {
-                        tip.style.transform = "translate(" + (e.clientX + 14) + "px," + (e.clientY + 14) + "px)";
-                        if (!hovering) {
-                            hovering = true;
-                            tip.classList.add("show");
+            if (e.key === "ArrowLeft") {
+                document
+                    .getElementById("zoomPrev")
+                    .click();
+                return;
+            }
+
+
+            if (e.key === "ArrowRight") {
+                document
+                    .getElementById("zoomNext")
+                    .click();
+                return;
+            }
+
+
+            if (
+                e.key === "+" ||
+                e.key === "="
+            ) {
+                changeZoom(0.2);
+                return;
+            }
+
+
+            if (
+                e.key === "-" ||
+                e.key === "_"
+            ) {
+                changeZoom(-0.2);
+            }
+        }
+    );
+
+
+    /*
+     * Move the carousel itself.
+     *
+     * This also immediately loads the selected image if it hasn't
+     * already been loaded.
+     */
+    function moveCarousel(
+        carousel,
+        direction
+    ) {
+
+        const img =
+            carousel.querySelector("img");
+
+        if (!img) return;
+
+
+        const urls =
+            JSON.parse(
+                img.dataset.carouselUrls || "[]"
+            );
+
+
+        if (!urls.length) {
+            return;
+        }
+
+
+        let current =
+            Number(
+                carousel.dataset.index || 0
+            );
+
+
+        current =
+            (
+                current +
+                direction +
+                urls.length
+            ) %
+            urls.length;
+
+
+        carousel.dataset.index =
+            current;
+
+
+        /*
+         * Load the selected image immediately.
+         */
+        img.src =
+            urls[current];
+
+        img.removeAttribute(
+            "data-src"
+        );
+
+
+        /*
+         * Update carousel counter.
+         */
+        const countEl =
+            carousel.parentElement
+                .querySelector(
+                    ".carousel-count"
+                );
+
+
+        if (countEl) {
+            countEl.textContent =
+                current + 1 +
+                " / " +
+                urls.length;
+        }
+    }
+
+
+    /* =========================================================
+       LETTER NAVIGATION
+       ========================================================= */
+
+    function initial(name) {
+        const c =
+            norm(name).charAt(0);
+
+        return /^[a-z]$/.test(c)
+            ? c
+            : "#";
+    }
+
+
+    function makeLetters() {
+
+        const box =
+            document.getElementById(
+                "letters"
+            );
+
+        box.innerHTML = "";
+
+
+        const all =
+            document.createElement(
+                "button"
+            );
+
+        all.textContent = "All";
+
+        all.className =
+            activeLetter === ""
+                ? "active"
+                : "";
+
+
+        all.onclick = () => {
+
+            activeLetter = "";
+
+            visibleCount =
+                PAGE_SIZE;
+
+            render();
+        };
+
+
+        box.appendChild(all);
+
+
+        for (
+            let i = 0;
+            i < 26;
+            i++
+        ) {
+
+            const l =
+                String.fromCharCode(
+                    97 + i
+                );
+
+            const b =
+                document.createElement(
+                    "button"
+                );
+
+
+            b.textContent =
+                l.toUpperCase();
+
+
+            b.className =
+                activeLetter === l
+                    ? "active"
+                    : "";
+
+
+            b.onclick = () => {
+
+                activeLetter = l;
+
+                visibleCount =
+                    PAGE_SIZE;
+
+                render();
+            };
+
+
+            box.appendChild(b);
+        }
+    }
+
+
+    /* =========================================================
+       TABLE CELLS
+       ========================================================= */
+
+    function makeTextCell(
+        label,
+        text,
+        bold = false
+    ) {
+
+        const d =
+            document.createElement(
+                "div"
+            );
+
+
+        const lab =
+            document.createElement(
+                "div"
+            );
+
+        lab.className =
+            "mobile-label";
+
+        lab.textContent =
+            label;
+
+
+        d.appendChild(lab);
+
+
+        const v =
+            document.createElement(
+                bold ? "strong" : "span"
+            );
+
+
+        v.textContent =
+            text || "—";
+
+
+        d.appendChild(v);
+
+
+        return d;
+    }
+
+
+    function makeEntry(
+        row,
+        rowIndex
+    ) {
+
+        const e =
+            document.createElement(
+                "div"
+            );
+
+        e.className =
+            "entry";
+
+
+        e.appendChild(
+            makeTextCell(
+                "Name",
+                row.name,
+                true
+            )
+        );
+
+
+        e.appendChild(
+            makeTextCell(
+                "Other name(s) / Spelling(s)",
+                row.other
+            )
+        );
+
+
+        e.appendChild(
+            makeTextCell(
+                "Date(s)",
+                row.dates
+            )
+        );
+
+
+        const sig =
+            document.createElement(
+                "div"
+            );
+
+        sig.className =
+            "signature-box";
+
+
+        sig.appendChild(
+            makeSignature(
+                row,
+                rowIndex
+            )
+        );
+
+
+        e.appendChild(sig);
+
+
+        const source =
+            document.createElement(
+                "div"
+            );
+
+        source.className =
+            "source";
+
+
+        const sl =
+            document.createElement(
+                "div"
+            );
+
+        sl.className =
+            "mobile-label";
+
+        sl.textContent =
+            "Source";
+
+
+        source.appendChild(sl);
+
+
+        if (row.sourceUrl) {
+
+            const a =
+                document.createElement(
+                    "a"
+                );
+
+            a.href =
+                row.sourceUrl;
+
+            a.target =
+                "_blank";
+
+            a.rel =
+                "noopener";
+
+            a.textContent =
+                row.source ||
+                "Source";
+
+
+            source.appendChild(a);
+
+        } else {
+
+            source.appendChild(
+                document.createTextNode(
+                    row.source || "—"
+                )
+            );
+        }
+
+
+        e.appendChild(source);
+
+
+        return e;
+    }
+
+
+    /* =========================================================
+       LAZY LOADING
+       ========================================================= */
+
+    const imageObserver =
+        new IntersectionObserver(
+            (entries) => {
+
+                entries.forEach(
+                    (entry) => {
+
+                        if (
+                            !entry.isIntersecting
+                        ) {
+                            return;
                         }
-                    } else if (hovering) {
-                        hovering = false;
-                        tip.classList.remove("show");
-                    }
-                });
-                document.addEventListener("mouseleave", () => {
-                    hovering = false;
-                    tip.classList.remove("show");
-                });
-            })();
 
-            loadData();
+
+                        const img =
+                            entry.target;
+
+
+                        const src =
+                            img.dataset.src;
+
+
+                        if (!src) {
+                            imageObserver.unobserve(
+                                img
+                            );
+
+                            return;
+                        }
+
+
+                        /*
+                         * Start loading.
+                         */
+                        img.src = src;
+
+
+                        img.onload = () => {
+
+                            /*
+                             * Once the image successfully loads,
+                             * there is no reason to keep observing it.
+                             */
+                            imageObserver.unobserve(
+                                img
+                            );
+                        };
+
+
+                        img.onerror = () => {
+
+                            console.warn(
+                                "Could not load image:",
+                                src
+                            );
+
+
+                            const m =
+                                document.createElement(
+                                    "div"
+                                );
+
+
+                            m.className =
+                                "missing";
+
+
+                            m.textContent =
+                                "Image not added yet";
+
+
+                            img.replaceWith(m);
+
+
+                            imageObserver.unobserve(
+                                img
+                            );
+                        };
+                    }
+                );
+            },
+            {
+                rootMargin:
+                    "500px 0px"
+            }
+        );
+
+
+    /* =========================================================
+       RENDER
+       ========================================================= */
+
+    function render() {
+
+        makeLetters();
+
+
+        const rows =
+            data.filter(
+                (r) =>
+                    (
+                        !activeLetter ||
+                        initial(r.name) ===
+                            activeLetter
+                    ) &&
+                    matchesSearch(r)
+            );
+
+
+        const shown =
+            rows.slice(
+                0,
+                visibleCount
+            );
+
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            rows.length.toLocaleString() +
+            " entries" +
+            (
+                query
+                    ? ' matching "' +
+                      query +
+                      '"'
+                    : activeLetter
+                    ? " in " +
+                      activeLetter.toUpperCase()
+                    : ""
+            ) +
+            (
+                rows.length >
+                shown.length
+                    ? "  —  showing " +
+                      shown.length
+                    : ""
+            );
+
+
+        const box =
+            document.getElementById(
+                "results"
+            );
+
+
+        box.innerHTML = "";
+
+
+        const wrap =
+            document.createElement(
+                "div"
+            );
+
+        wrap.className =
+            "table-wrap";
+
+
+        const head =
+            document.createElement(
+                "div"
+            );
+
+        head.className =
+            "column-head";
+
+
+        [
+            "Name",
+            "Other name(s) / Spelling(s)",
+            "Date(s)",
+            "Signature",
+            "Source"
+        ].forEach(
+            (x) => {
+
+                const d =
+                    document.createElement(
+                        "div"
+                    );
+
+                d.textContent =
+                    x;
+
+                head.appendChild(d);
+            }
+        );
+
+
+        wrap.appendChild(head);
+
+
+        const frag =
+            document.createDocumentFragment();
+
+
+        shown.forEach(
+            (r, i) => {
+
+                frag.appendChild(
+                    makeEntry(
+                        r,
+                        i
+                    )
+                );
+            }
+        );
+
+
+        wrap.appendChild(frag);
+
+        box.appendChild(wrap);
+
+
+        /*
+         * Activate lazy loading for every signature image.
+         */
+        wrap
+            .querySelectorAll(
+                ".lazy-image"
+            )
+            .forEach(
+                (img) => {
+
+                    imageObserver.observe(
+                        img
+                    );
+                }
+            );
+
+
+        /*
+         * Load-more button.
+         */
+        if (
+            shown.length <
+            rows.length
+        ) {
+
+            const more =
+                document.createElement(
+                    "button"
+                );
+
+
+            more.className =
+                "load-more";
+
+
+            more.textContent =
+                `Load next ${
+                    Math.min(
+                        PAGE_SIZE,
+                        rows.length -
+                            shown.length
+                    )
+                } entries`;
+
+
+            more.onclick = () => {
+
+                visibleCount +=
+                    PAGE_SIZE;
+
+                render();
+            };
+
+
+            box.appendChild(more);
+        }
+    }
+
+
+    /* =========================================================
+       DATA LOADING
+       ========================================================= */
+
+    async function loadData() {
+
+        try {
+
+            /*
+             * Use cached names immediately when available.
+             */
+            const cached =
+                localStorage.getItem(
+                    CACHE_KEY
+                );
+
+
+            if (cached) {
+
+                try {
+
+                    data =
+                        JSON.parse(
+                            cached
+                        );
+
+                    /*
+                     * Do not render cached data until
+                     * images.json has also been attached.
+                     */
+                } catch (e) {
+                    console.warn(
+                        "Could not parse cached names.",
+                        e
+                    );
+                }
+            }
+
+
+            /*
+             * Load images.json.
+             */
+            const imageResponse =
+                await fetch(
+                    "images.json",
+                    {
+                        cache:
+                            "no-cache"
+                    }
+                );
+
+
+            if (!imageResponse.ok) {
+
+                throw new Error(
+                    "Could not load images.json (HTTP " +
+                    imageResponse.status +
+                    ")"
+                );
+            }
+
+
+            imageManifest =
+                await imageResponse.json();
+
+
+            if (
+                !Array.isArray(
+                    imageManifest
+                )
+            ) {
+
+                throw new Error(
+                    "images.json must contain an array."
+                );
+            }
+
+
+            /*
+             * If we had cached names, attach the
+             * manifest before rendering them.
+             */
+            if (data.length) {
+                attachImageManifestToRows();
+                render();
+            }
+
+
+            /*
+             * Load fresh names.txt.
+             */
+            const response =
+                await fetch(
+                    DATA_URL,
+                    {
+                        cache:
+                            "no-cache"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "GitHub returned HTTP " +
+                    response.status
+                );
+            }
+
+
+            const fresh =
+                parseNamesTxt(
+                    await response.text()
+                );
+
+
+            data = fresh;
+
+
+            /*
+             * Cache names only.
+             * images.json is loaded separately each time.
+             */
+            try {
+
+                localStorage.setItem(
+                    CACHE_KEY,
+                    JSON.stringify(
+                        fresh
+                    )
+                );
+
+            } catch (e) {
+                console.warn(
+                    "Could not save names cache.",
+                    e
+                );
+            }
+
+
+            /*
+             * THIS IS THE IMPORTANT PART:
+             *
+             * Attach the correct image group to every
+             * individual row, including duplicate names.
+             */
+            attachImageManifestToRows();
+
+
+            render();
+
+
+        } catch (err) {
+
+            console.error(
+                "Website loading error:",
+                err
+            );
+
+
+            if (!data.length) {
+
+                document.getElementById(
+                    "status"
+                ).textContent =
+                    "Could not load collector list.";
+
+
+                const error =
+                    document.getElementById(
+                        "error"
+                    );
+
+
+                error.style.display =
+                    "block";
+
+
+                error.textContent =
+                    "Could not load the collector data: " +
+                    err.message;
+            }
+        }
+    }
+
+
+    /* =========================================================
+       SEARCH
+       ========================================================= */
+
+    document
+        .getElementById("search")
+        .addEventListener(
+            "input",
+            (e) => {
+
+                query =
+                    e.target.value;
+
+                visibleCount =
+                    PAGE_SIZE;
+
+                render();
+            }
+        );
+
+
+    document
+        .getElementById("clear")
+        .addEventListener(
+            "click",
+            () => {
+
+                document.getElementById(
+                    "search"
+                ).value = "";
+
+                query = "";
+
+                activeLetter = "";
+
+                visibleCount =
+                    PAGE_SIZE;
+
+                render();
+            }
+        );
+
+
+    /* =========================================================
+       CURSOR-FOLLOWING "CLICK TO ZOOM" TOOLTIP
+       ========================================================= */
+
+    (function () {
+
+        const tip =
+            document.getElementById(
+                "hoverTip"
+            );
+
+
+        let hovering = false;
+
+
+        document.addEventListener(
+            "mousemove",
+            (e) => {
+
+                const overImage =
+                    e.target.closest &&
+                    e.target.closest(
+                        ".carousel-img"
+                    );
+
+
+                if (overImage) {
+
+                    tip.style.transform =
+                        "translate(" +
+                        (e.clientX + 14) +
+                        "px," +
+                        (e.clientY + 14) +
+                        "px";
+
+
+                    if (!hovering) {
+
+                        hovering = true;
+
+                        tip.classList.add(
+                            "show"
+                        );
+                    }
+
+                } else if (hovering) {
+
+                    hovering = false;
+
+                    tip.classList.remove(
+                        "show"
+                    );
+                }
+            }
+        );
+
+
+        document.addEventListener(
+            "mouseleave",
+            () => {
+
+                hovering = false;
+
+                tip.classList.remove(
+                    "show"
+                );
+            }
+        );
+
+    })();
+
+
+    /* =========================================================
+       START
+       ========================================================= */
+
+    loadData();
+
+</script>
         </script>
     </body>
 </html>
