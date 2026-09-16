@@ -311,10 +311,28 @@
             }
             
             .signature-carousel {
+            	position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 5px;
+                width: 100%;
+            }
+            
+            .signature-carousel .carousel-btn:first-child {
+            	position: absolute;
+                left: 0;
+            }
+            
+            .signature-carousel .carousel-btn:last-child {
+            	position: absolute;
+                right: 0;
+            }
+            
+            .carousel-count {
+                font-size: 11px;
+                color: #666;
+                position: absolute;
+                bottom: 0;
             }
             
             .carousel-btn {
@@ -327,13 +345,6 @@
                 font-size: 18px;
                 line-height: 1;
                 padding: 0;
-                position: fixed;
-            }
-            
-            .carousel-count {
-                font-size: 11px;
-                color: #666;
-                position: fixed;
             }
             
             .carousel-btn:hover {
